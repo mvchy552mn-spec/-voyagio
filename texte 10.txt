@@ -1,0 +1,253 @@
+
+
+
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voyagio ✈️</title>
+
+<style>
+body{
+    margin:0;
+    font-family: Arial;
+    background:#000;
+    color:white;
+}
+
+/* HERO */
+.hero{
+    height:85vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    background:linear-gradient(to bottom,#000,#111);
+}
+
+.hero h1{
+    font-size:32px;
+    background: linear-gradient(90deg,#ff7a18,#ff3cac,#784ba0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.btn-main{
+    margin-top:20px;
+    padding:15px 25px;
+    border:none;
+    border-radius:30px;
+    background:linear-gradient(90deg,#ff7a18,#ff3cac);
+    color:white;
+    font-size:16px;
+}
+
+/* DESTINATIONS */
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+    padding:20px;
+}
+
+.card-img{
+    position:relative;
+    border-radius:15px;
+    overflow:hidden;
+    cursor:pointer;
+}
+
+.card-img img{
+    width:100%;
+    height:150px;
+    object-fit:cover;
+}
+
+.label{
+    position:absolute;
+    bottom:10px;
+    left:10px;
+    background:rgba(0,0,0,0.6);
+    padding:6px 12px;
+    border-radius:10px;
+}
+
+/* SECTION */
+.section{
+    padding:30px 20px;
+    text-align:center;
+}
+
+/* FORM */
+input, select, textarea{
+    width:100%;
+    padding:15px;
+    margin:10px 0;
+    border:none;
+    border-radius:10px;
+    background:#111;
+    color:white;
+}
+
+input:focus, select:focus, textarea:focus{
+    box-shadow:0 0 10px rgba(255,122,24,0.5);
+    outline:none;
+}
+
+/* FOOTER */
+.footer{
+    margin-top:60px;
+    padding:40px 20px;
+    background:#0d0d0d;
+    text-align:center;
+}
+
+.footer h3{
+    background: linear-gradient(90deg,#ff7a18,#ff3cac);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+</style>
+</head>
+
+<body>
+
+<!-- HERO -->
+<div class="hero">
+    <div>
+        <h1>Ton voyage commence ici</h1>
+        <p>Crée un voyage unique en quelques secondes</p>
+        <div><span id="clients">127</span> voyageurs aujourd’hui</div>
+        <button class="btn-main" onclick="scrollToForm()">Créer mon voyage ✈️</button>
+    </div>
+</div>
+
+<!-- DESTINATIONS -->
+<div class="section">
+<h2>Destinations de rêve 🌍</h2>
+
+<div class="grid">
+
+<div class="card-img">
+<img src="https://images.pexels.com/photos/35057424/pexels-photo-35057424.jpeg">
+<div class="label">Bali</div>
+</div>
+
+<div class="card-img">
+<img src="https://images.pexels.com/photos/9394269/pexels-photo-9394269.jpeg">
+<div class="label">Maldives</div>
+</div>
+
+<div class="card-img">
+<img src="https://images.pexels.com/photos/5247279/pexels-photo-5247279.jpeg">
+<div class="label">Thaïlande</div>
+</div>
+
+<div class="card-img">
+<img src="https://images.pexels.com/photos/15682449/pexels-photo-15682449.jpeg">
+<div class="label">Dubai</div>
+</div>
+
+</div>
+</div>
+
+<!-- POURQUOI -->
+<div class="section">
+<h2>Pourquoi Voyagio ?</h2>
+<p>✨ Voyage personnalisé</p>
+<p>💰 Adapté à ton budget</p>
+<p>⚡ Résultat instantané</p>
+<p>🔒 Paiement sécurisé</p>
+</div>
+
+<!-- FORM -->
+<div class="section">
+<h2>Créer ton voyage ✈️</h2>
+
+<form id="travelForm">
+
+<input type="text" name="name" placeholder="Ton nom" required>
+<input type="email" name="email" placeholder="Ton email" required>
+
+<select name="destination">
+<option>Bali</option>
+<option>Maldives</option>
+<option>Thaïlande</option>
+<option>Dubai</option>
+</select>
+
+<input type="number" name="budget" placeholder="Budget (€)">
+<input type="number" name="people" placeholder="Nombre de personnes">
+
+<select name="duration">
+<option>3 jours</option>
+<option>5 jours</option>
+<option>7 jours</option>
+<option>10 jours</option>
+</select>
+
+<select name="style">
+<option>Détente</option>
+<option>Aventure</option>
+<option>Luxe</option>
+<option>Road trip</option>
+<option>Romantique</option>
+</select>
+
+<textarea name="details" placeholder="Décris ton voyage idéal..."></textarea>
+
+<button class="btn-main">Générer mon voyage ✈️</button>
+
+</form>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+<h3>Voyagio ✈️</h3>
+<p>Ton voyage parfait, créé en quelques secondes</p>
+<p>© 2026 Voyagio</p>
+</footer>
+
+<script>
+
+// scroll bouton
+function scrollToForm(){
+document.getElementById("travelForm").scrollIntoView({behavior:"smooth"});
+}
+
+// compteur live
+let count = 127;
+setInterval(()=>{
+count += Math.floor(Math.random()*2);
+document.getElementById("clients").innerText = count;
+},4000);
+
+// CLICK DESTINATION
+document.querySelectorAll('.card-img').forEach(card=>{
+card.addEventListener('click',function(){
+const destination = this.querySelector('.label').innerText;
+document.querySelector('select[name="destination"]').value = destination;
+scrollToForm();
+});
+});
+
+// FORM
+document.getElementById("travelForm").addEventListener("submit", function(e){
+e.preventDefault();
+
+fetch("https://formspree.io/f/mgoraqeo", {
+method: "POST",
+body: new FormData(this),
+headers: { 'Accept': 'application/json' }
+});
+
+alert("✅ Demande envoyée !");
+this.reset();
+});
+
+</script>
+
+</body>
+</html>
