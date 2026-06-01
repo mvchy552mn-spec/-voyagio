@@ -3,1940 +3,1914 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WHOLE MELT — Premium Cannabis Extracts</title>
+<title>FIFA World Cup 2026 — Expériences VIP Exclusives</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
 <style>
-  :root {
-    --neon-pink: #ff2d78;
-    --neon-violet: #b847ff;
-    --neon-blue: #00d4ff;
-    --neon-purple: #7c3aed;
-    --deep-black: #020005;
-    --card-bg: rgba(12, 4, 25, 0.85);
-    --glass: rgba(255,255,255,0.04);
-    --glass-border: rgba(255,255,255,0.08);
-    --glow-pink: 0 0 30px rgba(255,45,120,0.6), 0 0 60px rgba(255,45,120,0.3);
-    --glow-violet: 0 0 30px rgba(184,71,255,0.6), 0 0 60px rgba(184,71,255,0.3);
-    --glow-blue: 0 0 30px rgba(0,212,255,0.6), 0 0 60px rgba(0,212,255,0.3);
-    --font-display: 'Orbitron', monospace;
-    --font-body: 'Rajdhani', sans-serif;
-    --font-mono: 'Space Mono', monospace;
-  }
+:root {
+  --gold: #C9A84C;
+  --gold-light: #E8C96A;
+  --gold-dark: #9A7A2E;
+  --black: #050505;
+  --deep: #0A0A0A;
+  --card: #111111;
+  --card2: #161616;
+  --border: rgba(201,168,76,0.2);
+  --text: #F5F0E8;
+  --muted: #888880;
+  --white: #FFFFFF;
+  --red: #C0392B;
+  --green: #27AE60;
+  --orange: #E67E22;
+}
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  html { scroll-behavior: smooth; overflow-x: hidden; }
+html { scroll-behavior: smooth; }
 
-  body {
-    background: var(--deep-black);
-    color: #fff;
-    font-family: var(--font-body);
-    overflow-x: hidden;
-    cursor: none;
-  }
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--black);
+  color: var(--text);
+  overflow-x: hidden;
+}
 
-  /* ─── CUSTOM CURSOR ─── */
-  .cursor {
-    width: 12px; height: 12px;
-    background: var(--neon-pink);
-    border-radius: 50%;
-    position: fixed;
-    top: 0; left: 0;
-    pointer-events: none;
-    z-index: 99999;
-    transform: translate(-50%, -50%);
-    transition: transform 0.1s, background 0.3s;
-    box-shadow: var(--glow-pink);
-    mix-blend-mode: screen;
-  }
-  .cursor-ring {
-    width: 38px; height: 38px;
-    border: 1.5px solid rgba(255,45,120,0.5);
-    border-radius: 50%;
-    position: fixed;
-    top: 0; left: 0;
-    pointer-events: none;
-    z-index: 99998;
-    transform: translate(-50%, -50%);
-    transition: transform 0.18s ease, width 0.3s, height 0.3s, border-color 0.3s;
-  }
-  .cursor-ring.hovered { width: 60px; height: 60px; border-color: var(--neon-violet); }
-  .cursor.clicked { transform: translate(-50%, -50%) scale(0.5); }
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 48px;
+  height: 72px;
+  background: rgba(5,5,5,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+.nav-links {
+  display: flex; gap: 32px; list-style: none;
+}
+.nav-links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--gold); }
+.nav-cta {
+  background: var(--gold);
+  color: var(--black);
+  border: none;
+  padding: 10px 24px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.nav-cta:hover { background: var(--gold-light); }
 
-  /* ─── BACKGROUND CANVAS ─── */
-  #bg-canvas {
-    position: fixed; top: 0; left: 0;
-    width: 100%; height: 100%;
-    z-index: 0;
-    pointer-events: none;
-  }
+/* ── HERO ── */
+#hero {
+  position: relative;
+  height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.hero-video-wrap {
+  position: absolute; inset: 0; z-index: 0;
+}
+.hero-video-wrap video {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.hero-video-wrap::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(5,5,5,0.3) 0%, rgba(5,5,5,0.6) 60%, rgba(5,5,5,1) 100%);
+}
+/* Fallback image hero */
+.hero-bg-img {
+  position: absolute; inset: 0;
+  background-image: url('https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=1920&q=80');
+  background-size: cover;
+  background-position: center;
+}
+.hero-bg-img::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(5,5,5,0.2) 0%, rgba(5,5,5,0.55) 50%, rgba(5,5,5,1) 100%);
+}
+.hero-content {
+  position: relative; z-index: 1;
+  text-align: center;
+  max-width: 860px;
+  padding: 0 24px;
+  animation: heroIn 1.2s ease both;
+}
+@keyframes heroIn {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(201,168,76,0.12);
+  border: 1px solid var(--border);
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 8px 20px;
+  margin-bottom: 32px;
+}
+.hero-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(52px, 8vw, 96px);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  margin-bottom: 24px;
+}
+.hero-title span { color: var(--gold); font-style: italic; }
+.hero-sub {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 300;
+  font-style: italic;
+  color: rgba(245,240,232,0.75);
+  margin-bottom: 48px;
+  line-height: 1.5;
+}
+.hero-actions {
+  display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+}
+.btn-primary {
+  background: var(--gold);
+  color: var(--black);
+  border: none;
+  padding: 18px 48px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.btn-primary:hover { background: var(--gold-light); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(201,168,76,0.3); }
+.btn-outline {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid rgba(245,240,232,0.3);
+  padding: 18px 48px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.btn-outline:hover { border-color: var(--gold); color: var(--gold); }
 
-  /* ─── NOISE OVERLAY ─── */
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-    opacity: 0.025;
-    pointer-events: none;
-    z-index: 1;
-  }
+/* ── STATS STRIP ── */
+.stats-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.stat-item {
+  padding: 40px 32px;
+  text-align: center;
+  border-right: 1px solid var(--border);
+}
+.stat-item:last-child { border-right: none; }
+.stat-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 48px;
+  font-weight: 900;
+  color: var(--gold);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.stat-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
 
-  /* ─── NAVBAR ─── */
-  nav {
-    position: fixed; top: 0; left: 0; width: 100%;
-    z-index: 1000;
-    padding: 0 5%;
-    height: 80px;
-    display: flex; align-items: center; justify-content: space-between;
-    backdrop-filter: blur(20px);
-    background: rgba(2,0,5,0.6);
-    border-bottom: 1px solid rgba(255,45,120,0.12);
-    transition: all 0.4s ease;
-  }
-  nav.scrolled {
-    background: rgba(2,0,5,0.9);
-    border-bottom-color: rgba(255,45,120,0.25);
-    box-shadow: 0 0 40px rgba(255,45,120,0.08);
-  }
-  .nav-logo {
-    font-family: var(--font-display);
-    font-size: 1.4rem;
-    font-weight: 900;
-    letter-spacing: 0.15em;
-    background: linear-gradient(135deg, var(--neon-pink), var(--neon-violet));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow: none;
-    position: relative;
-  }
-  .nav-logo::after {
-    content: 'EXTRACTS';
-    display: block;
-    font-size: 0.42rem;
-    letter-spacing: 0.35em;
-    background: linear-gradient(135deg, var(--neon-blue), var(--neon-violet));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-top: -4px;
-  }
-  .nav-links {
-    display: flex; gap: 3rem;
-    list-style: none;
-  }
-  .nav-links a {
-    font-family: var(--font-display);
-    font-size: 0.62rem;
-    font-weight: 600;
-    letter-spacing: 0.2em;
-    color: rgba(255,255,255,0.55);
-    text-decoration: none;
-    text-transform: uppercase;
-    position: relative;
-    transition: color 0.3s;
-  }
-  .nav-links a::after {
-    content: '';
-    position: absolute; bottom: -4px; left: 0;
-    width: 0; height: 1px;
-    background: var(--neon-pink);
-    box-shadow: var(--glow-pink);
-    transition: width 0.3s ease;
-  }
-  .nav-links a:hover { color: var(--neon-pink); }
-  .nav-links a:hover::after { width: 100%; }
-  .nav-cta {
-    font-family: var(--font-display);
-    font-size: 0.6rem;
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    padding: 10px 24px;
-    background: linear-gradient(135deg, var(--neon-pink), var(--neon-violet));
-    border: none;
-    border-radius: 4px;
-    color: #fff;
-    cursor: none;
-    text-transform: uppercase;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s;
-    box-shadow: 0 0 20px rgba(255,45,120,0.4);
-    text-decoration: none;
-  }
-  .nav-cta::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-  .nav-cta:hover::before { opacity: 1; }
-  .nav-cta:hover { box-shadow: var(--glow-pink); transform: translateY(-1px); }
-  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: none; }
-  .hamburger span { display: block; width: 28px; height: 2px; background: var(--neon-pink); transition: all 0.3s; }
+/* ── SECTION COMMONS ── */
+section { padding: 100px 48px; }
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 16px;
+}
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(36px, 5vw, 64px);
+  font-weight: 900;
+  line-height: 1.05;
+  margin-bottom: 24px;
+}
+.section-title em { font-style: italic; color: var(--gold); }
+.section-desc {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 300;
+  color: rgba(245,240,232,0.7);
+  max-width: 600px;
+  line-height: 1.7;
+  margin-bottom: 60px;
+}
 
-  /* ─── HERO ─── */
-  #hero {
-    position: relative; z-index: 2;
-    min-height: 100vh;
-    display: flex; align-items: center; justify-content: center;
-    overflow: hidden;
-    padding-top: 80px;
-  }
-  .hero-bg-grid {
-    position: absolute; inset: 0;
-    background-image:
-      linear-gradient(rgba(255,45,120,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,45,120,0.04) 1px, transparent 1px);
-    background-size: 60px 60px;
-    animation: gridShift 20s linear infinite;
-  }
-  @keyframes gridShift {
-    0% { transform: translateY(0); }
-    100% { transform: translateY(60px); }
-  }
-  .hero-glow-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    pointer-events: none;
-  }
-  .orb-1 {
-    width: 600px; height: 600px;
-    background: radial-gradient(circle, rgba(255,45,120,0.25), transparent 70%);
-    top: -100px; left: -150px;
-    animation: orbFloat 8s ease-in-out infinite;
-  }
-  .orb-2 {
-    width: 500px; height: 500px;
-    background: radial-gradient(circle, rgba(184,71,255,0.2), transparent 70%);
-    bottom: -100px; right: -100px;
-    animation: orbFloat 10s ease-in-out infinite reverse;
-  }
-  .orb-3 {
-    width: 400px; height: 400px;
-    background: radial-gradient(circle, rgba(0,212,255,0.12), transparent 70%);
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    animation: orbPulse 6s ease-in-out infinite;
-  }
-  @keyframes orbFloat {
-    0%, 100% { transform: translate(0, 0); }
-    33% { transform: translate(30px, -20px); }
-    66% { transform: translate(-20px, 15px); }
-  }
-  @keyframes orbPulse {
-    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
-    50% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
-  }
-  .hero-content {
-    position: relative; z-index: 3;
-    text-align: center;
-    max-width: 960px;
-    padding: 0 2rem;
-  }
-  .hero-eyebrow {
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    letter-spacing: 0.5em;
-    color: var(--neon-blue);
-    text-transform: uppercase;
-    margin-bottom: 1.5rem;
-    opacity: 0;
-    animation: fadeUp 0.8s 0.3s forwards;
-    text-shadow: 0 0 20px rgba(0,212,255,0.8);
-  }
-  .hero-title {
-    font-family: var(--font-display);
-    font-size: clamp(3.5rem, 10vw, 9rem);
-    font-weight: 900;
-    line-height: 0.9;
-    letter-spacing: -0.02em;
-    margin-bottom: 1rem;
-    opacity: 0;
-    animation: fadeUp 0.8s 0.5s forwards;
-  }
-  .hero-title .line-1 {
-    display: block;
-    background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.8) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .hero-title .line-2 {
-    display: block;
-    background: linear-gradient(135deg, var(--neon-pink), var(--neon-violet), var(--neon-blue));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    filter: drop-shadow(0 0 30px rgba(255,45,120,0.5));
-  }
-  .hero-tagline {
-    font-family: var(--font-body);
-    font-size: clamp(1rem, 2.5vw, 1.4rem);
-    font-weight: 300;
-    color: rgba(255,255,255,0.55);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    margin-bottom: 3rem;
-    opacity: 0;
-    animation: fadeUp 0.8s 0.7s forwards;
-  }
-  .hero-product-float {
-    position: relative;
-    width: 240px; height: 240px;
-    margin: 0 auto 3rem;
-    opacity: 0;
-    animation: fadeUp 1s 0.6s forwards, float 6s 1.6s ease-in-out infinite;
-  }
-  @keyframes float {
-    0%, 100% { transform: translateY(0) rotate(-3deg); }
-    50% { transform: translateY(-20px) rotate(3deg); }
-  }
-  .hero-product-float img {
-    width: 100%; height: 100%;
-    object-fit: contain;
-    filter: drop-shadow(0 0 40px rgba(255,45,120,0.5)) drop-shadow(0 0 80px rgba(184,71,255,0.3));
-    border-radius: 20px;
-  }
-  .hero-product-glow {
-    position: absolute; inset: -30px;
-    background: radial-gradient(circle, rgba(255,45,120,0.2), transparent 70%);
-    border-radius: 50%;
-    animation: orbPulse 4s ease-in-out infinite;
-  }
-  .hero-actions {
-    display: flex; gap: 1.2rem;
-    justify-content: center; align-items: center;
-    flex-wrap: wrap;
-    opacity: 0;
-    animation: fadeUp 0.8s 0.9s forwards;
-  }
-  .btn-primary {
-    font-family: var(--font-display);
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    padding: 16px 42px;
-    background: linear-gradient(135deg, var(--neon-pink), var(--neon-violet));
-    border: none;
-    border-radius: 6px;
-    color: #fff;
-    cursor: none;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s;
-    box-shadow: 0 0 30px rgba(255,45,120,0.5), inset 0 1px 0 rgba(255,255,255,0.2);
-    text-decoration: none;
-    display: inline-block;
-  }
-  .btn-primary::before {
-    content: '';
-    position: absolute; top: 0; left: -100%;
-    width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: left 0.5s;
-  }
-  .btn-primary:hover::before { left: 100%; }
-  .btn-primary:hover { box-shadow: var(--glow-pink), inset 0 1px 0 rgba(255,255,255,0.2); transform: translateY(-2px); }
-  .btn-ghost {
-    font-family: var(--font-display);
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    padding: 15px 42px;
-    background: transparent;
-    border: 1px solid rgba(255,45,120,0.4);
-    border-radius: 6px;
-    color: rgba(255,255,255,0.8);
-    cursor: none;
-    transition: all 0.3s;
-    text-decoration: none;
-    display: inline-block;
-  }
-  .btn-ghost:hover {
-    border-color: var(--neon-pink);
-    color: #fff;
-    box-shadow: var(--glow-pink);
-    background: rgba(255,45,120,0.08);
-    transform: translateY(-2px);
-  }
-  .hero-scroll-indicator {
-    position: absolute; bottom: 2.5rem; left: 50%;
-    transform: translateX(-50%);
-    display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
-    opacity: 0;
-    animation: fadeIn 1s 1.5s forwards;
-    z-index: 3;
-  }
-  .scroll-text {
-    font-family: var(--font-mono);
-    font-size: 0.55rem;
-    letter-spacing: 0.3em;
-    color: rgba(255,255,255,0.3);
-    text-transform: uppercase;
-  }
-  .scroll-line {
-    width: 1px; height: 50px;
-    background: linear-gradient(180deg, rgba(255,45,120,0.8), transparent);
-    animation: scrollBob 2s ease-in-out infinite;
-  }
-  @keyframes scrollBob {
-    0%, 100% { transform: scaleY(1); opacity: 1; }
-    50% { transform: scaleY(0.5); opacity: 0.3; }
-  }
-  @keyframes fadeUp {
-    0% { opacity: 0; transform: translateY(30px); }
-    100% { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes fadeIn {
-    0% { opacity: 0; }
-    100% { opacity: 1; }
-  }
+/* ── GALLERY GRID ── */
+#gallery { padding-top: 0; }
+.gallery-intro { max-width: 1400px; margin: 0 auto 60px; }
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: repeat(2, 280px);
+  gap: 4px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.g-item {
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+}
+.g-item img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+.g-item:hover img { transform: scale(1.06); }
+.g-item .g-label {
+  position: absolute; bottom: 16px; left: 16px;
+  background: rgba(5,5,5,0.8);
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  backdrop-filter: blur(8px);
+}
+.g1 { grid-column: span 5; grid-row: span 2; }
+.g2 { grid-column: span 4; }
+.g3 { grid-column: span 3; }
+.g4 { grid-column: span 4; }
+.g5 { grid-column: span 3; }
 
-  /* ─── SECTION BASE ─── */
-  section { position: relative; z-index: 2; }
-  .section-header {
-    text-align: center;
-    margin-bottom: 4rem;
-  }
-  .section-label {
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    letter-spacing: 0.5em;
-    text-transform: uppercase;
-    color: var(--neon-pink);
-    text-shadow: 0 0 20px rgba(255,45,120,0.8);
-    margin-bottom: 1rem;
-    display: block;
-  }
-  .section-title {
-    font-family: var(--font-display);
-    font-size: clamp(2rem, 5vw, 3.5rem);
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    line-height: 1.1;
-    margin-bottom: 1.2rem;
-  }
-  .section-subtitle {
-    font-family: var(--font-body);
-    font-size: 1.05rem;
-    font-weight: 300;
-    color: rgba(255,255,255,0.45);
-    letter-spacing: 0.05em;
-    max-width: 500px;
-    margin: 0 auto;
-    line-height: 1.7;
-  }
-  .container {
-    max-width: 1320px;
-    margin: 0 auto;
-    padding: 0 5%;
-  }
+/* ── MATCHES ── */
+#matches { background: var(--deep); }
+.matches-header { max-width: 1400px; margin: 0 auto 60px; display: flex; justify-content: space-between; align-items: flex-end; }
+.matches-filters {
+  display: flex; gap: 8px;
+}
+.filter-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 8px 20px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.filter-btn.active, .filter-btn:hover {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--black);
+}
+.matches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 2px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.match-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 28px;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.match-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transition: transform 0.3s;
+}
+.match-card:hover { background: var(--card2); transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+.match-card:hover::before { transform: scaleX(1); }
+.match-status {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  margin-bottom: 20px;
+}
+.status-available { background: rgba(39,174,96,0.12); color: var(--green); border: 1px solid rgba(39,174,96,0.3); }
+.status-high { background: rgba(230,126,34,0.12); color: var(--orange); border: 1px solid rgba(230,126,34,0.3); }
+.status-almost { background: rgba(192,57,43,0.12); color: var(--red); border: 1px solid rgba(192,57,43,0.3); }
+.match-teams {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.team-info {
+  display: flex; align-items: center; gap: 12px;
+}
+.team-info.right { flex-direction: row-reverse; }
+.team-flag {
+  width: 44px; height: 32px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+}
+.team-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+.match-vs {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 14px;
+  font-style: italic;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+}
+.match-meta {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.match-meta-item { }
+.match-meta-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.match-meta-val {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+.match-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.match-price {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.match-price small {
+  font-family: 'Barlow', sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--muted);
+  display: block;
+}
+.btn-sm {
+  background: var(--gold);
+  color: var(--black);
+  border: none;
+  padding: 10px 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-sm:hover { background: var(--gold-light); }
 
-  /* ─── PRODUCTS SECTION ─── */
-  #products {
-    padding: 120px 0;
-  }
-  .products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-    gap: 2rem;
-    justify-items: center;
-  }
-  .product-card {
-    width: 100%;
-    max-width: 480px;
-    background: var(--card-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    overflow: hidden;
-    position: relative;
-    backdrop-filter: blur(20px);
-    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-    transform-style: preserve-3d;
-    perspective: 1000px;
-    opacity: 0;
-    transform: translateY(50px);
-  }
-  .product-card.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  .product-card::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(135deg, rgba(255,45,120,0.05) 0%, transparent 50%, rgba(184,71,255,0.05) 100%);
-    opacity: 0;
-    transition: opacity 0.5s;
-    border-radius: 20px;
-    z-index: 1;
-  }
-  .product-card:hover::before { opacity: 1; }
-  .product-card:hover {
-    border-color: rgba(255,45,120,0.35);
-    box-shadow: 0 0 60px rgba(255,45,120,0.2), 0 0 120px rgba(184,71,255,0.1), 0 30px 80px rgba(0,0,0,0.5);
-    transform: translateY(-10px) scale(1.01);
-  }
-  .card-badge {
-    position: absolute;
-    top: 1.2rem; left: 1.2rem;
-    z-index: 5;
-    font-family: var(--font-display);
-    font-size: 0.55rem;
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    padding: 6px 14px;
-    border-radius: 4px;
-  }
-  .badge-hybrid {
-    background: linear-gradient(135deg, rgba(255,45,120,0.25), rgba(184,71,255,0.25));
-    border: 1px solid rgba(255,45,120,0.4);
-    color: var(--neon-pink);
-    box-shadow: 0 0 15px rgba(255,45,120,0.2);
-  }
-  .badge-indica {
-    background: linear-gradient(135deg, rgba(184,71,255,0.25), rgba(0,212,255,0.15));
-    border: 1px solid rgba(184,71,255,0.4);
-    color: var(--neon-violet);
-    box-shadow: 0 0 15px rgba(184,71,255,0.2);
-  }
-  .badge-sativa {
-    background: linear-gradient(135deg, rgba(0,212,255,0.25), rgba(255,200,0,0.15));
-    border: 1px solid rgba(0,212,255,0.4);
-    color: var(--neon-blue);
-    box-shadow: 0 0 15px rgba(0,212,255,0.2);
-  }
-  .card-img-wrap {
-    position: relative;
-    height: 280px;
-    overflow: hidden;
-    background: linear-gradient(180deg, rgba(15,5,30,1) 0%, rgba(5,0,15,1) 100%);
-  }
-  .card-img-wrap img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    transition: transform 0.7s cubic-bezier(0.23, 1, 0.32, 1), filter 0.5s;
-    filter: brightness(0.9) saturate(1.1);
-  }
-  .product-card:hover .card-img-wrap img {
-    transform: scale(1.08);
-    filter: brightness(1) saturate(1.3);
-  }
-  .card-img-glow {
-    position: absolute; bottom: 0; left: 0; right: 0;
-    height: 50%;
-    background: linear-gradient(0deg, var(--card-bg), transparent);
-    z-index: 2;
-  }
-  .card-img-shine {
-    position: absolute; inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 50%);
-    z-index: 3;
-    opacity: 0;
-    transition: opacity 0.4s;
-  }
-  .product-card:hover .card-img-shine { opacity: 1; }
-  .card-body {
-    padding: 1.6rem 1.8rem 1.8rem;
-    position: relative; z-index: 2;
-  }
-  .card-name {
-    font-family: var(--font-display);
-    font-size: 1.05rem;
-    font-weight: 800;
-    letter-spacing: 0.03em;
-    color: #fff;
-    margin-bottom: 0.7rem;
-    line-height: 1.2;
-  }
-  .card-desc {
-    font-family: var(--font-body);
-    font-size: 0.9rem;
-    font-weight: 300;
-    color: rgba(255,255,255,0.5);
-    line-height: 1.65;
-    margin-bottom: 1.2rem;
-  }
-  .card-flavors {
-    display: flex; gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-bottom: 1.4rem;
-  }
-  .flavor-tag {
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    padding: 5px 12px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 100px;
-    color: rgba(255,255,255,0.55);
-    letter-spacing: 0.05em;
-    transition: all 0.3s;
-  }
-  .flavor-tag:hover {
-    border-color: rgba(255,45,120,0.4);
-    color: var(--neon-pink);
-    background: rgba(255,45,120,0.08);
-  }
-  .card-footer {
-    display: flex; align-items: center; justify-content: space-between;
-    border-top: 1px solid rgba(255,255,255,0.07);
-    padding-top: 1.2rem;
-    gap: 1rem;
-  }
-  .card-price {
-    font-family: var(--font-display);
-    font-size: 1.7rem;
-    font-weight: 900;
-    background: linear-gradient(135deg, var(--neon-pink), var(--neon-violet));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -0.02em;
-  }
-  .card-price-label {
-    font-family: var(--font-mono);
-    font-size: 0.55rem;
-    color: rgba(255,255,255,0.3);
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    margin-top: -4px;
-  }
-  .btn-add {
-    font-family: var(--font-display);
-    font-size: 0.6rem;
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    padding: 13px 26px;
-    background: linear-gradient(135deg, var(--neon-pink), var(--neon-violet));
-    border: none;
-    border-radius: 8px;
-    color: #fff;
-    cursor: none;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s;
-    box-shadow: 0 0 20px rgba(255,45,120,0.35);
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .btn-add::after {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-  .btn-add:hover { box-shadow: var(--glow-pink); transform: translateY(-2px); }
-  .btn-add:hover::after { opacity: 1; }
-  .card-line {
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--neon-pink), var(--neon-violet), var(--neon-blue));
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.5s ease;
-  }
-  .product-card:hover .card-line { transform: scaleX(1); }
+/* ── MAP ── */
+#map-section { background: var(--black); }
+.map-wrap { max-width: 1400px; margin: 0 auto; }
+#stade-map {
+  height: 600px;
+  border: 1px solid var(--border);
+}
+.leaflet-container { background: #0a0a0a !important; }
 
-  /* ─── STATS STRIP ─── */
-  .stats-strip {
-    padding: 60px 0;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    background: rgba(255,45,120,0.02);
-    margin: 0 0 0 0;
-  }
-  .stats-inner {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    gap: 2rem;
-  }
-  .stat-item { text-align: center; }
-  .stat-num {
-    font-family: var(--font-display);
-    font-size: clamp(2.5rem, 5vw, 4rem);
-    font-weight: 900;
-    background: linear-gradient(135deg, var(--neon-pink), var(--neon-violet));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    display: block;
-    line-height: 1;
-    margin-bottom: 0.5rem;
-  }
-  .stat-label {
-    font-family: var(--font-mono);
-    font-size: 0.6rem;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.35);
-  }
+/* ── EXPERIENCES ── */
+#experiences { background: var(--deep); }
+.exp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.exp-card {
+  position: relative;
+  overflow: hidden;
+  height: 480px;
+  cursor: pointer;
+}
+.exp-card img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s ease;
+}
+.exp-card:hover img { transform: scale(1.08); }
+.exp-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(5,5,5,0.95) 0%, rgba(5,5,5,0.3) 60%, transparent 100%);
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 32px;
+  transition: all 0.3s;
+}
+.exp-icon {
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+.exp-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.exp-desc {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px;
+  font-weight: 300;
+  color: rgba(245,240,232,0.7);
+  line-height: 1.5;
+}
 
-  /* ─── COLLECTIONS ─── */
-  #collections { padding: 120px 0; }
-  .collections-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-  }
-  .collection-card {
-    position: relative;
-    height: 340px;
-    border-radius: 16px;
-    overflow: hidden;
-    cursor: none;
-    border: 1px solid var(--glass-border);
-    transition: all 0.4s ease;
-    opacity: 0;
-    transform: translateY(40px);
-  }
-  .collection-card.visible { opacity: 1; transform: translateY(0); }
-  .collection-card:hover {
-    border-color: rgba(255,45,120,0.35);
-    transform: translateY(-6px);
-    box-shadow: 0 0 50px rgba(255,45,120,0.15), 0 20px 60px rgba(0,0,0,0.4);
-  }
-  .collection-card:nth-child(1) { grid-column: span 2; }
-  .collection-bg {
-    position: absolute; inset: 0;
-    background-size: cover; background-position: center;
-    transition: transform 0.7s ease;
-    filter: brightness(0.35) saturate(1.2);
-  }
-  .collection-card:hover .collection-bg { transform: scale(1.06); }
-  .col-1-bg { background: linear-gradient(135deg, #0a0015, #1a0030, #0d0025), url('') center/cover; background-image: radial-gradient(ellipse at 30% 40%, rgba(255,45,120,0.5) 0%, transparent 60%), radial-gradient(ellipse at 70% 60%, rgba(184,71,255,0.4) 0%, transparent 60%); }
-  .col-2-bg { background: radial-gradient(ellipse at 50% 30%, rgba(0,212,255,0.5) 0%, transparent 60%), radial-gradient(ellipse at 50% 80%, rgba(184,71,255,0.4) 0%, transparent 60%); }
-  .col-3-bg { background: radial-gradient(ellipse at 40% 50%, rgba(255,45,120,0.5) 0%, transparent 60%), radial-gradient(ellipse at 70% 50%, rgba(0,212,255,0.3) 0%, transparent 60%); }
-  .collection-content {
-    position: relative; z-index: 2;
-    height: 100%;
-    display: flex; flex-direction: column; justify-content: flex-end;
-    padding: 2rem;
-    background: linear-gradient(0deg, rgba(2,0,5,0.9) 0%, rgba(2,0,5,0.3) 50%, transparent 100%);
-  }
-  .collection-tag {
-    font-family: var(--font-mono);
-    font-size: 0.58rem;
-    letter-spacing: 0.35em;
-    color: var(--neon-pink);
-    text-transform: uppercase;
-    margin-bottom: 0.5rem;
-  }
-  .collection-name {
-    font-family: var(--font-display);
-    font-size: 1.6rem;
-    font-weight: 800;
-    color: #fff;
-    margin-bottom: 0.5rem;
-    letter-spacing: -0.02em;
-  }
-  .collection-desc {
-    font-size: 0.88rem;
-    color: rgba(255,255,255,0.45);
-    font-weight: 300;
-    line-height: 1.6;
-    margin-bottom: 1.2rem;
-  }
-  .btn-sm {
-    font-family: var(--font-display);
-    font-size: 0.58rem;
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    padding: 10px 22px;
-    background: transparent;
-    border: 1px solid rgba(255,45,120,0.5);
-    border-radius: 5px;
-    color: var(--neon-pink);
-    cursor: none;
-    display: inline-block;
-    transition: all 0.3s;
-    text-decoration: none;
-    width: fit-content;
-  }
-  .btn-sm:hover {
-    background: var(--neon-pink);
-    color: #fff;
-    box-shadow: var(--glow-pink);
-    transform: translateY(-1px);
-  }
+/* ── PACKS ── */
+#packs { background: var(--black); }
+.packs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.pack-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 48px 40px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+.pack-card.featured {
+  background: var(--card2);
+  border-color: var(--gold);
+}
+.pack-card.featured::before {
+  content: 'BESTSELLER';
+  position: absolute; top: 24px; right: 24px;
+  background: var(--gold);
+  color: var(--black);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  padding: 4px 10px;
+}
+.pack-card:hover { transform: translateY(-8px); box-shadow: 0 30px 80px rgba(0,0,0,0.6); }
+.pack-tier {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 16px;
+}
+.pack-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 16px;
+}
+.pack-tagline {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 17px;
+  font-style: italic;
+  color: rgba(245,240,232,0.6);
+  margin-bottom: 32px;
+  line-height: 1.5;
+}
+.pack-price {
+  font-family: 'Playfair Display', serif;
+  font-size: 48px;
+  font-weight: 900;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.pack-price sub {
+  font-size: 20px;
+  vertical-align: middle;
+}
+.pack-person {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 32px;
+  letter-spacing: 0.05em;
+}
+.pack-features {
+  list-style: none;
+  margin-bottom: 40px;
+}
+.pack-features li {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  color: rgba(245,240,232,0.8);
+}
+.pack-features li:last-child { border-bottom: none; }
+.pack-check { color: var(--gold); font-size: 14px; flex-shrink: 0; margin-top: 1px; }
 
-  /* ─── BRAND STORY ─── */
-  #brand { padding: 120px 0; }
-  .brand-inner {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6rem;
-    align-items: center;
-  }
-  .brand-visual {
-    position: relative;
-    height: 500px;
-  }
-  .brand-visual-box {
-    position: absolute;
-    border-radius: 16px;
-    overflow: hidden;
-  }
-  .bvb-main {
-    width: 100%; height: 100%;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255,45,120,0.15) 0%, rgba(184,71,255,0.15) 50%, rgba(0,212,255,0.1) 100%);
-    border: 1px solid rgba(255,45,120,0.2);
-    display: flex; align-items: center; justify-content: center;
-  }
-  .brand-logo-big {
-    font-family: var(--font-display);
-    font-size: 5rem;
-    font-weight: 900;
-    background: linear-gradient(135deg, var(--neon-pink), var(--neon-violet));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -0.05em;
-    line-height: 1;
-    text-align: center;
-    filter: drop-shadow(0 0 30px rgba(255,45,120,0.3));
-  }
-  .brand-glow-strip {
-    position: absolute;
-    width: 2px;
-    top: 20%; bottom: 20%;
-    left: -1px;
-    background: linear-gradient(180deg, transparent, var(--neon-pink), var(--neon-violet), transparent);
-    box-shadow: var(--glow-pink);
-    animation: glowPulse 3s ease-in-out infinite;
-  }
-  @keyframes glowPulse {
-    0%, 100% { opacity: 0.6; }
-    50% { opacity: 1; }
-  }
-  .brand-card-float {
-    position: absolute;
-    background: var(--card-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    padding: 1rem 1.4rem;
-    backdrop-filter: blur(20px);
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    color: rgba(255,255,255,0.6);
-    animation: float 7s ease-in-out infinite;
-  }
-  .bcf-1 { bottom: 30px; right: -30px; animation-delay: 0s; }
-  .bcf-2 { top: 60px; right: -20px; animation-delay: 2s; }
-  .bcf-val {
-    font-family: var(--font-display);
-    font-size: 1.3rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--neon-pink), var(--neon-violet));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    display: block;
-    margin-bottom: 2px;
-  }
-  .brand-text h2 {
-    font-family: var(--font-display);
-    font-size: clamp(2rem, 4vw, 3rem);
-    font-weight: 800;
-    color: #fff;
-    line-height: 1.15;
-    margin-bottom: 1.5rem;
-    letter-spacing: -0.02em;
-  }
-  .brand-text h2 span {
-    background: linear-gradient(135deg, var(--neon-pink), var(--neon-violet));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .brand-text p {
-    font-size: 1rem;
-    font-weight: 300;
-    color: rgba(255,255,255,0.5);
-    line-height: 1.8;
-    margin-bottom: 1.2rem;
-  }
-  .brand-pillars {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-top: 2rem;
-  }
-  .pillar {
-    background: var(--glass);
-    border: 1px solid var(--glass-border);
-    border-radius: 10px;
-    padding: 1.2rem;
-    transition: all 0.3s;
-  }
-  .pillar:hover {
-    border-color: rgba(255,45,120,0.3);
-    background: rgba(255,45,120,0.05);
-    box-shadow: 0 0 30px rgba(255,45,120,0.1);
-  }
-  .pillar-icon {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-    display: block;
-  }
-  .pillar-name {
-    font-family: var(--font-display);
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    color: #fff;
-    margin-bottom: 0.3rem;
-    text-transform: uppercase;
-  }
-  .pillar-desc {
-    font-size: 0.82rem;
-    color: rgba(255,255,255,0.4);
-    line-height: 1.5;
-  }
+/* ── TUNNEL OVERLAY ── */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(5,5,5,0.96);
+  backdrop-filter: blur(20px);
+  z-index: 2000;
+  display: none;
+  overflow-y: auto;
+}
+.overlay.active { display: block; }
+.overlay-inner {
+  min-height: 100vh;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 80px 24px;
+}
+.overlay-panel {
+  width: 100%;
+  max-width: 900px;
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+.overlay-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 28px 40px;
+  border-bottom: 1px solid var(--border);
+}
+.overlay-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 700;
+}
+.overlay-close {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  width: 40px; height: 40px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.overlay-close:hover { border-color: var(--gold); color: var(--gold); }
+.overlay-body { padding: 40px; }
 
-  /* ─── MARQUEE ─── */
-  .marquee-wrap {
-    padding: 30px 0;
-    overflow: hidden;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    background: rgba(255,45,120,0.03);
-  }
-  .marquee-track {
-    display: flex;
-    gap: 3rem;
-    animation: marquee 25s linear infinite;
-    width: max-content;
-  }
-  .marquee-track:hover { animation-play-state: paused; }
-  @keyframes marquee {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
-  }
-  .marquee-item {
-    font-family: var(--font-display);
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.15);
-    white-space: nowrap;
-    display: flex; align-items: center; gap: 1.5rem;
-  }
-  .marquee-dot {
-    width: 5px; height: 5px;
-    background: var(--neon-pink);
-    border-radius: 50%;
-    box-shadow: var(--glow-pink);
-    flex-shrink: 0;
-  }
-  .marquee-highlight { color: var(--neon-pink); }
+/* ── MATCH DETAIL ── */
+.match-detail-hero {
+  position: relative;
+  height: 300px;
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+.match-detail-hero img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.match-detail-hero::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(17,17,17,1) 0%, transparent 60%);
+}
+.match-detail-overlay {
+  position: absolute; bottom: 24px; left: 40px; right: 40px;
+  z-index: 1;
+}
+.match-detail-teams {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+.match-detail-info {
+  font-size: 13px;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+}
 
-  /* ─── WHOLESALE ─── */
-  #wholesale { padding: 120px 0; }
-  .wholesale-inner {
-    background: var(--card-bg);
-    border: 1px solid rgba(255,45,120,0.15);
-    border-radius: 24px;
-    padding: 5rem 4rem;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-    backdrop-filter: blur(20px);
-  }
-  .wholesale-inner::before {
-    content: '';
-    position: absolute;
-    top: -50%; left: -50%;
-    width: 200%; height: 200%;
-    background: conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(255,45,120,0.05) 60deg, transparent 120deg, rgba(184,71,255,0.05) 180deg, transparent 240deg, rgba(0,212,255,0.05) 300deg, transparent 360deg);
-    animation: rotateBg 20s linear infinite;
-  }
-  @keyframes rotateBg {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  .wholesale-inner > * { position: relative; z-index: 1; }
-  .wholesale-inner h2 {
-    font-family: var(--font-display);
-    font-size: clamp(2rem, 5vw, 3.5rem);
-    font-weight: 900;
-    color: #fff;
-    margin-bottom: 1rem;
-  }
-  .wholesale-inner p {
-    font-size: 1.05rem;
-    color: rgba(255,255,255,0.45);
-    max-width: 550px;
-    margin: 0 auto 2.5rem;
-    line-height: 1.7;
-    font-weight: 300;
-  }
-  .wholesale-perks {
-    display: flex; justify-content: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 3rem;
-  }
-  .perk {
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    letter-spacing: 0.15em;
-    padding: 8px 18px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 100px;
-    color: rgba(255,255,255,0.55);
-  }
+.detail-section { margin-bottom: 40px; }
+.detail-section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--gold);
+}
+.photo-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+.photo-mini-grid img {
+  width: 100%; height: 120px;
+  object-fit: cover;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.photo-mini-grid img:hover { opacity: 0.8; }
 
-  /* ─── CONTACT ─── */
-  #contact { padding: 120px 0; }
-  .contact-inner {
-    display: grid;
-    grid-template-columns: 1fr 1.3fr;
-    gap: 5rem;
-    align-items: start;
-  }
-  .contact-info h2 {
-    font-family: var(--font-display);
-    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
-    font-weight: 800;
-    color: #fff;
-    margin-bottom: 1rem;
-    line-height: 1.15;
-    letter-spacing: -0.02em;
-  }
-  .contact-info p {
-    font-size: 0.95rem;
-    color: rgba(255,255,255,0.4);
-    line-height: 1.8;
-    font-weight: 300;
-    margin-bottom: 2rem;
-  }
-  .contact-socials {
-    display: flex; gap: 1rem;
-  }
-  .social-link {
-    width: 44px; height: 44px;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 10px;
-    font-size: 1rem;
-    text-decoration: none;
-    transition: all 0.3s;
-    cursor: none;
-  }
-  .social-link:hover {
-    border-color: var(--neon-pink);
-    background: rgba(255,45,120,0.1);
-    box-shadow: 0 0 20px rgba(255,45,120,0.25);
-    transform: translateY(-2px);
-  }
-  .contact-form {
-    display: flex; flex-direction: column; gap: 1rem;
-  }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
-  .form-group label {
-    font-family: var(--font-mono);
-    font-size: 0.6rem;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.35);
-  }
-  .form-group input,
-  .form-group textarea,
-  .form-group select {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 8px;
-    padding: 14px 18px;
-    font-family: var(--font-body);
-    font-size: 0.95rem;
-    color: #fff;
-    outline: none;
-    transition: all 0.3s;
-    resize: none;
-    -webkit-appearance: none;
-    appearance: none;
-  }
-  .form-group select option { background: #0a0015; }
-  .form-group input:focus,
-  .form-group textarea:focus,
-  .form-group select:focus {
-    border-color: rgba(255,45,120,0.5);
-    background: rgba(255,45,120,0.04);
-    box-shadow: 0 0 20px rgba(255,45,120,0.1);
-  }
-  .form-group input::placeholder,
-  .form-group textarea::placeholder { color: rgba(255,255,255,0.2); }
+.hotels-grid, .restaurants-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.hotel-card, .resto-card {
+  background: var(--deep);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  display: flex;
+}
+.hotel-img, .resto-img {
+  width: 100px; height: 100px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.hotel-info, .resto-info {
+  padding: 14px 16px;
+}
+.hotel-name, .resto-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.hotel-stars, .resto-stars {
+  color: var(--gold);
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+.hotel-price, .resto-price {
+  font-size: 12px;
+  color: var(--muted);
+}
 
-  /* ─── FOOTER ─── */
-  footer {
-    position: relative; z-index: 2;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    padding: 4rem 5% 2.5rem;
-  }
-  .footer-top {
-    display: grid;
-    grid-template-columns: 1.5fr 1fr 1fr 1fr;
-    gap: 3rem;
-    margin-bottom: 3rem;
-  }
-  .footer-brand-col .footer-logo {
-    font-family: var(--font-display);
-    font-size: 1.5rem;
-    font-weight: 900;
-    background: linear-gradient(135deg, var(--neon-pink), var(--neon-violet));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: 0.1em;
-    margin-bottom: 0.8rem;
-    display: block;
-  }
-  .footer-brand-col p {
-    font-size: 0.88rem;
-    color: rgba(255,255,255,0.3);
-    line-height: 1.7;
-    font-weight: 300;
-    max-width: 260px;
-  }
-  .footer-col h4 {
-    font-family: var(--font-display);
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.6);
-    margin-bottom: 1.2rem;
-  }
-  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.65rem; }
-  .footer-col ul li a {
-    font-size: 0.88rem;
-    color: rgba(255,255,255,0.3);
-    text-decoration: none;
-    transition: color 0.3s;
-    display: inline-block;
-  }
-  .footer-col ul li a:hover { color: var(--neon-pink); }
-  .footer-bottom {
-    border-top: 1px solid rgba(255,255,255,0.05);
-    padding-top: 2rem;
-    display: flex; justify-content: space-between; align-items: center;
-    flex-wrap: wrap; gap: 1rem;
-  }
-  .footer-bottom p {
-    font-family: var(--font-mono);
-    font-size: 0.6rem;
-    color: rgba(255,255,255,0.2);
-    letter-spacing: 0.1em;
-  }
-  .footer-disclaimer {
-    font-family: var(--font-mono);
-    font-size: 0.55rem;
-    color: rgba(255,255,255,0.15);
-    letter-spacing: 0.05em;
-    text-align: center;
-    margin-top: 1.5rem;
-    line-height: 1.7;
-    max-width: 700px;
-    margin-left: auto; margin-right: auto;
-  }
+.packs-select {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.pack-select-card {
+  background: var(--deep);
+  border: 2px solid var(--border);
+  padding: 24px 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.pack-select-card:hover, .pack-select-card.selected {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.05);
+}
+.pack-select-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.pack-select-price {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.pack-select-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
 
-  /* ─── AGE GATE ─── */
-  .age-gate {
-    position: fixed; inset: 0;
-    z-index: 99999;
-    background: var(--deep-black);
-    display: flex; align-items: center; justify-content: center;
-    backdrop-filter: blur(0);
-  }
-  .age-gate.hidden { display: none; }
-  .age-gate-inner {
-    text-align: center;
-    max-width: 480px;
-    padding: 2rem;
-  }
-  .age-gate-logo {
-    font-family: var(--font-display);
-    font-size: 2.5rem;
-    font-weight: 900;
-    background: linear-gradient(135deg, var(--neon-pink), var(--neon-violet));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 0.5rem;
-  }
-  .age-gate h2 {
-    font-family: var(--font-display);
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: 0.8rem;
-    letter-spacing: 0.05em;
-  }
-  .age-gate p {
-    font-size: 0.9rem;
-    color: rgba(255,255,255,0.4);
-    margin-bottom: 2rem;
-    line-height: 1.6;
-  }
-  .age-gate-btns { display: flex; gap: 1rem; justify-content: center; }
-  .age-no {
-    font-family: var(--font-display);
-    font-size: 0.65rem;
-    letter-spacing: 0.15em;
-    padding: 14px 32px;
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 6px;
-    color: rgba(255,255,255,0.4);
-    cursor: none;
-    text-transform: uppercase;
-    transition: all 0.3s;
-  }
-  .age-no:hover { border-color: rgba(255,255,255,0.3); color: rgba(255,255,255,0.7); }
+/* ── CART ── */
+.cart-item {
+  display: flex; gap: 20px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--border);
+}
+.cart-item-img {
+  width: 100px; height: 80px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.cart-item-info { flex: 1; }
+.cart-item-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.cart-item-sub { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+.cart-item-price {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.cart-total {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 24px 0;
+  margin-top: 8px;
+  border-top: 2px solid var(--gold);
+}
+.cart-total-label {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 700;
+}
+.cart-total-price {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--gold);
+}
 
-  /* ─── SCROLL REVEAL ─── */
-  .reveal {
-    opacity: 0;
-    transform: translateY(40px);
-    transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.23, 1, 0.32, 1);
-  }
-  .reveal.visible { opacity: 1; transform: translateY(0); }
+/* ── PAYMENT ── */
+.payment-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 40px;
+}
+.payment-form .form-group {
+  margin-bottom: 20px;
+}
+.form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.form-input {
+  width: 100%;
+  background: var(--deep);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 14px 18px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus { border-color: var(--gold); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.card-icons {
+  display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap;
+}
+.card-icon {
+  background: var(--deep);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.card-icon.active {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.card-icon svg { width: 32px; height: 20px; }
+.payment-summary {
+  background: var(--deep);
+  border: 1px solid var(--border);
+  padding: 28px;
+}
+.pay-sum-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.pay-sum-line {
+  display: flex; justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+.pay-sum-line.total {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gold);
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+.trust-badges {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.trust-badge {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.trust-badge span { color: var(--green); }
 
-  /* ─── TOAST ─── */
-  .toast {
-    position: fixed;
-    bottom: 2rem; right: 2rem;
-    z-index: 10000;
-    background: var(--card-bg);
-    border: 1px solid rgba(255,45,120,0.3);
-    border-radius: 12px;
-    padding: 1rem 1.5rem;
-    backdrop-filter: blur(20px);
-    box-shadow: var(--glow-pink), 0 20px 40px rgba(0,0,0,0.4);
-    display: flex; align-items: center; gap: 0.8rem;
-    transform: translateX(150%);
-    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-    max-width: 300px;
-  }
-  .toast.show { transform: translateX(0); }
-  .toast-icon { font-size: 1.3rem; }
-  .toast-text {
-    font-family: var(--font-display);
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
-    color: #fff;
-    line-height: 1.4;
-  }
+/* ── CONFIRMATION ── */
+.confirm-icon {
+  width: 80px; height: 80px;
+  background: rgba(39,174,96,0.12);
+  border: 2px solid var(--green);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px;
+  margin: 0 auto 32px;
+}
+.confirm-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 40px;
+  font-weight: 900;
+  text-align: center;
+  margin-bottom: 12px;
+}
+.confirm-sub {
+  text-align: center;
+  color: var(--muted);
+  font-size: 15px;
+  margin-bottom: 40px;
+}
+.order-number {
+  text-align: center;
+  background: rgba(201,168,76,0.08);
+  border: 1px solid var(--border);
+  padding: 20px;
+  margin-bottom: 40px;
+}
+.order-number-label { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.order-number-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--gold);
+}
+.confirm-details {
+  background: var(--deep);
+  border: 1px solid var(--border);
+  padding: 28px;
+  margin-bottom: 28px;
+}
+.confirm-row {
+  display: flex; justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.confirm-row:last-child { border-bottom: none; }
+.confirm-row-label { color: var(--muted); }
+.confirm-row-val { font-weight: 600; }
+.pdf-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 16px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.pdf-btn:hover { background: var(--gold); color: var(--black); }
 
-  /* ─── RESPONSIVE ─── */
-  @media (max-width: 1024px) {
-    .collections-grid { grid-template-columns: 1fr 1fr; }
-    .collection-card:nth-child(1) { grid-column: span 2; }
-    .brand-inner { grid-template-columns: 1fr; gap: 3rem; }
-    .brand-visual { height: 350px; }
-    .footer-top { grid-template-columns: 1fr 1fr; }
-    .contact-inner { grid-template-columns: 1fr; gap: 3rem; }
-  }
-  @media (max-width: 768px) {
-    .nav-links { display: none; }
-    .nav-cta { display: none; }
-    .hamburger { display: flex; }
-    .products-grid { grid-template-columns: 1fr; }
-    .collections-grid { grid-template-columns: 1fr; }
-    .collection-card:nth-child(1) { grid-column: span 1; }
-    .brand-pillars { grid-template-columns: 1fr; }
-    .footer-top { grid-template-columns: 1fr; }
-    .footer-bottom { flex-direction: column; text-align: center; }
-    .wholesale-inner { padding: 3rem 2rem; }
-    .form-row { grid-template-columns: 1fr; }
-    .hero-product-float { width: 180px; height: 180px; }
-    .stats-inner { gap: 1.5rem; }
-    .brand-visual { height: 280px; }
-    .bcf-1, .bcf-2 { display: none; }
-    .hero-title { font-size: clamp(2.8rem, 14vw, 6rem); }
-    .contact-socials { flex-wrap: wrap; }
-    .age-gate-btns { flex-direction: column; }
-    .hero-actions { flex-direction: column; }
-    .btn-primary, .btn-ghost { width: 100%; text-align: center; }
-  }
+/* ── PROGRESS ── */
+.tunnel-progress {
+  display: flex; align-items: center; justify-content: center;
+  gap: 0;
+  padding: 24px 40px;
+  border-bottom: 1px solid var(--border);
+}
+.progress-step {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.progress-step.active { color: var(--gold); }
+.progress-step.done { color: var(--green); }
+.step-num {
+  width: 24px; height: 24px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+}
+.progress-line {
+  width: 48px; height: 1px;
+  background: var(--border);
+  margin: 0 8px;
+}
+.progress-line.done { background: var(--green); }
 
-  /* ─── MOBILE MENU ─── */
-  .mobile-nav {
-    position: fixed; top: 80px; left: 0; right: 0;
-    background: rgba(2,0,5,0.97);
-    border-bottom: 1px solid rgba(255,45,120,0.2);
-    backdrop-filter: blur(20px);
-    z-index: 999;
-    padding: 2rem 5%;
-    transform: translateY(-110%);
-    transition: transform 0.4s cubic-bezier(0.23,1,0.32,1);
-    display: flex; flex-direction: column; gap: 1.5rem;
-  }
-  .mobile-nav.open { transform: translateY(0); }
-  .mobile-nav a {
-    font-family: var(--font-display);
-    font-size: 1.1rem;
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    color: rgba(255,255,255,0.7);
-    text-decoration: none;
-    text-transform: uppercase;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    transition: color 0.3s;
-  }
-  .mobile-nav a:hover { color: var(--neon-pink); }
-  .mobile-nav a:last-child { border-bottom: none; }
+/* ── TESTIMONIALS ── */
+#testimonials { background: var(--deep); }
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.testimonial-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 40px 36px;
+}
+.testi-stars { color: var(--gold); font-size: 14px; margin-bottom: 20px; }
+.testi-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  font-style: italic;
+  font-weight: 300;
+  line-height: 1.6;
+  margin-bottom: 28px;
+  color: rgba(245,240,232,0.85);
+}
+.testi-author {
+  display: flex; align-items: center; gap: 14px;
+}
+.testi-avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border);
+}
+.testi-name { font-weight: 600; font-size: 14px; }
+.testi-role { font-size: 12px; color: var(--muted); }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--deep);
+  border-top: 1px solid var(--border);
+  padding: 80px 48px 40px;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 60px;
+  max-width: 1400px;
+  margin: 0 auto 60px;
+}
+.footer-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 16px;
+}
+.footer-desc {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px;
+  font-weight: 300;
+  color: rgba(245,240,232,0.5);
+  line-height: 1.7;
+}
+.footer-col-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 20px;
+}
+.footer-links { list-style: none; }
+.footer-links li {
+  padding: 6px 0;
+}
+.footer-links a {
+  color: rgba(245,240,232,0.5);
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--gold); }
+.footer-bottom {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 32px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ── UTILITIES ── */
+.max-w { max-width: 1400px; margin: 0 auto; }
+.text-gold { color: var(--gold); }
+.mt-40 { margin-top: 40px; }
 </style>
 </head>
 <body>
 
-<!-- Age Gate -->
-<div class="age-gate" id="ageGate">
-  <div class="age-gate-inner">
-    <div style="margin-bottom:1.5rem;">
-      <div style="width:80px;height:80px;background:linear-gradient(135deg,rgba(255,45,120,0.2),rgba(184,71,255,0.2));border:1px solid rgba(255,45,120,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:2rem;">🌿</div>
-    </div>
-    <div class="age-gate-logo">WHOLE MELT</div>
-    <h2>Verification d'Age</h2>
-    <p>Ce site contient des produits réservés aux adultes de 18 ans et plus. Veuillez confirmer votre âge pour continuer.</p>
-    <div class="age-gate-btns">
-      <button class="btn-primary" onclick="enterSite()" style="cursor:none;">J'ai 18 ans ou plus</button>
-      <button class="age-no" onclick="alert('Vous devez avoir 18 ans.')">J\'ai moins de 18 ans</button>
-    </div>
-    <p style="margin-top:1.5rem;font-size:0.72rem;color:rgba(255,255,255,0.2);">En entrant, vous confirmez être majeur et acceptez notre politique de confidentialité.</p>
-  </div>
-</div>
-
-<!-- Custom Cursor -->
-<div class="cursor" id="cursor"></div>
-<div class="cursor-ring" id="cursorRing"></div>
-
-<!-- Background Canvas -->
-<canvas id="bg-canvas"></canvas>
-
-<!-- Toast -->
-<div class="toast" id="toast">
-  <span class="toast-icon">✨</span>
-  <div class="toast-text">Ajouté au panier avec succès !</div>
-</div>
-
-<!-- NAVBAR -->
-<nav id="navbar">
-  <div class="nav-logo">WHOLE MELT</div>
+<!-- NAV -->
+<nav>
+  <div class="nav-logo" onclick="showHome()">⬡ WORLD CUP 2026</div>
   <ul class="nav-links">
-    <li><a href="#products">Produits</a></li>
-    <li><a href="#collections">Collections</a></li>
-    <li><a href="#brand">Histoire</a></li>
-    <li><a href="#wholesale">Wholesale</a></li>
-    <li><a href="#contact">Contact</a></li>
+    <li><a href="#matches" onclick="closeAll()">Matchs</a></li>
+    <li><a href="#experiences" onclick="closeAll()">Expériences</a></li>
+    <li><a href="#packs" onclick="closeAll()">Packs</a></li>
+    <li><a href="#map-section" onclick="closeAll()">Stades</a></li>
+    <li><a href="#testimonials" onclick="closeAll()">Avis</a></li>
   </ul>
-  <a href="#products" class="nav-cta">Shop Now</a>
-  <div class="hamburger" id="hamburger" onclick="toggleMenu()">
-    <span></span><span></span><span></span>
-  </div>
+  <button class="nav-cta" onclick="document.getElementById('matches').scrollIntoView({behavior:'smooth'})">Réserver</button>
 </nav>
 
-<!-- Mobile Nav -->
-<nav class="mobile-nav" id="mobileNav">
-  <a href="#products" onclick="toggleMenu()">Produits</a>
-  <a href="#collections" onclick="toggleMenu()">Collections</a>
-  <a href="#brand" onclick="toggleMenu()">Histoire</a>
-  <a href="#wholesale" onclick="toggleMenu()">Wholesale</a>
-  <a href="#contact" onclick="toggleMenu()">Contact</a>
-</nav>
-
-<!-- ═══════════════════════════════════ HERO ═══════════════════════════════════ -->
+<!-- HERO -->
 <section id="hero">
-  <div class="hero-bg-grid"></div>
-  <div class="hero-glow-orb orb-1"></div>
-  <div class="hero-glow-orb orb-2"></div>
-  <div class="hero-glow-orb orb-3"></div>
+  <div class="hero-bg-img"></div>
   <div class="hero-content">
-    <div class="hero-eyebrow">// Premium Cannabis Extracts — Since 2020 //</div>
-    <div class="hero-product-float">
-      <div class="hero-product-glow"></div>
-      <img src="https://cdn.phototourl.com/free/2026-05-14-ffd65e34-b1a6-402d-89ba-29cd252b96b0.jpg" alt="Whole Melt Product">
-    </div>
-    <h1 class="hero-title">
-      <span class="line-1">WHOLE</span>
-      <span class="line-2">MELT</span>
-    </h1>
-    <p class="hero-tagline">L'excellence en extraits — Pureté absolue. Expérience ultime.</p>
+    <div class="hero-badge">✦ Expériences exclusives · FIFA World Cup 2026™</div>
+    <h1 class="hero-title">Vivez la <span>Coupe du<br>Monde</span> en VIP</h1>
+    <p class="hero-sub">Des expériences d'exception de 5 000€ à 50 000€.<br>Billets, loges, jets privés, hôtels 5 étoiles — tout inclus.</p>
     <div class="hero-actions">
-      <a href="#products" class="btn-primary">Découvrir la Collection</a>
-      <a href="#brand" class="btn-ghost">Notre Histoire</a>
+      <button class="btn-primary" onclick="document.getElementById('matches').scrollIntoView({behavior:'smooth'})">Voir les matchs disponibles</button>
+      <button class="btn-outline" onclick="document.getElementById('packs').scrollIntoView({behavior:'smooth'})">Découvrir nos packs</button>
     </div>
-  </div>
-  <div class="hero-scroll-indicator">
-    <span class="scroll-text">Scroll</span>
-    <div class="scroll-line"></div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════ STATS ═══════════════════════════════════ -->
-<div class="stats-strip reveal">
-  <div class="container">
-    <div class="stats-inner">
-      <div class="stat-item">
-        <span class="stat-num" data-target="99">0</span>
-        <span class="stat-label">% Pureté</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-num" data-target="50">0</span>
-        <span class="stat-label">Souches Disponibles</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-num" data-target="12000">0</span>
-        <span class="stat-label">Clients Satisfaits</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-num" data-target="4">0</span>
-        <span class="stat-label">Ans d'Excellence</span>
-      </div>
-    </div>
-  </div>
+<!-- STATS -->
+<div class="stats-strip">
+  <div class="stat-item"><div class="stat-num">48</div><div class="stat-label">Nations participantes</div></div>
+  <div class="stat-item"><div class="stat-num">16</div><div class="stat-label">Stades officiels</div></div>
+  <div class="stat-item"><div class="stat-num">104</div><div class="stat-label">Matchs au total</div></div>
+  <div class="stat-item"><div class="stat-num">50K€</div><div class="stat-label">Pack le plus exclusif</div></div>
 </div>
 
-<!-- ═══════════════════════════════════ PRODUCTS ═══════════════════════════════════ -->
-<section id="products">
-  <div class="container">
-    <div class="section-header reveal">
-      <span class="section-label">// Collection Signature //</span>
-      <h2 class="section-title">Nos Extraits Premium</h2>
-      <p class="section-subtitle">Des vaporizers d'exception conçus pour les connaisseurs les plus exigeants.</p>
+<!-- GALLERY -->
+<section id="gallery">
+  <div class="gallery-intro max-w">
+    <div class="section-label">✦ Nos expériences</div>
+    <h2 class="section-title">Chaque détail, <em>pensé pour vous</em></h2>
+  </div>
+  <div class="gallery-grid">
+    <div class="g-item g1">
+      <img src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&q=80" alt="Stade">
+      <div class="g-label">Stades iconiques</div>
     </div>
-    <div class="products-grid">
-
-      <!-- PRODUCT 1 -->
-      <div class="product-card" style="transition-delay:0.1s;">
-        <div class="card-badge badge-hybrid">⚡ Hybrid</div>
-        <div class="card-img-wrap">
-          <img src="https://cdn.phototourl.com/free/2026-05-14-ffd65e34-b1a6-402d-89ba-29cd252b96b0.jpg" alt="Fusion Grape Ape Live Diamond" loading="lazy">
-          <div class="card-img-glow"></div>
-          <div class="card-img-shine"></div>
-        </div>
-        <div class="card-body">
-          <h3 class="card-name">Fusion Grape Ape<br>Live Diamond</h3>
-          <p class="card-desc">Vaporizer premium aux notes intenses de raisin noir et baies sucrées. Une expérience smooth et relaxante conçue pour les amateurs d'extraits haut de gamme.</p>
-          <div class="card-flavors">
-            <span class="flavor-tag">🍇 Raisin</span>
-            <span class="flavor-tag">🫐 Baies</span>
-            <span class="flavor-tag">Live Diamond</span>
-          </div>
-          <div class="card-footer">
-            <div>
-              <div class="card-price">€69.90</div>
-              <div class="card-price-label">Prix unitaire</div>
-            </div>
-            <button class="btn-add" onclick="addToCart(this)">+ Ajouter</button>
-          </div>
-        </div>
-        <div class="card-line"></div>
-      </div>
-
-      <!-- PRODUCT 2 -->
-      <div class="product-card" style="transition-delay:0.25s;">
-        <div class="card-badge badge-indica">🌙 Indica</div>
-        <div class="card-img-wrap">
-          <img src="https://cdn.phototourl.com/free/2026-05-14-ce177027-72a6-4aa4-80f4-07ad08453aca.jpg" alt="Whole Melt Bugatti OG" loading="lazy">
-          <div class="card-img-glow"></div>
-          <div class="card-img-shine"></div>
-        </div>
-        <div class="card-body">
-          <h3 class="card-name">Whole Melt<br>Bugatti OG</h3>
-          <p class="card-desc">Live Resin premium indica-dominant avec des notes fruitées, citrus et une douceur candy intense. Relaxation profonde et expérience puissante longue durée.</p>
-          <div class="card-flavors">
-            <span class="flavor-tag">🍋 Citrus</span>
-            <span class="flavor-tag">🍬 Candy</span>
-            <span class="flavor-tag">Live Resin</span>
-          </div>
-          <div class="card-footer">
-            <div>
-              <div class="card-price">€79.90</div>
-              <div class="card-price-label">Prix unitaire</div>
-            </div>
-            <button class="btn-add" onclick="addToCart(this)">+ Ajouter</button>
-          </div>
-        </div>
-        <div class="card-line"></div>
-      </div>
-
+    <div class="g-item g2">
+      <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=700&q=80" alt="Hôtel VIP">
+      <div class="g-label">Hôtels 5★</div>
+    </div>
+    <div class="g-item g3">
+      <img src="https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=600&q=80" alt="Gastronomie">
+      <div class="g-label">Gastronomie</div>
+    </div>
+    <div class="g-item g4">
+      <img src="https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=700&q=80" alt="Jet privé">
+      <div class="g-label">Jets privés</div>
+    </div>
+    <div class="g-item g5">
+      <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&q=80" alt="Chauffeur">
+      <div class="g-label">Chauffeurs privés</div>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════ MARQUEE ═══════════════════════════════════ -->
-<div class="marquee-wrap">
-  <div class="marquee-track">
-    <div class="marquee-item"><span class="marquee-dot"></span> <span class="marquee-highlight">WHOLE MELT EXTRACTS</span></div>
-    <div class="marquee-item"><span class="marquee-dot"></span> PREMIUM LIVE RESIN</div>
-    <div class="marquee-item"><span class="marquee-dot"></span> <span class="marquee-highlight">LIVE DIAMOND</span></div>
-    <div class="marquee-item"><span class="marquee-dot"></span> PURETÉ ABSOLUE</div>
-    <div class="marquee-item"><span class="marquee-dot"></span> <span class="marquee-highlight">COLD EXTRACTION</span></div>
-    <div class="marquee-item"><span class="marquee-dot"></span> PREMIUM VAPORIZERS</div>
-    <div class="marquee-item"><span class="marquee-dot"></span> <span class="marquee-highlight">WHOLE MELT EXTRACTS</span></div>
-    <div class="marquee-item"><span class="marquee-dot"></span> PREMIUM LIVE RESIN</div>
-    <div class="marquee-item"><span class="marquee-dot"></span> <span class="marquee-highlight">LIVE DIAMOND</span></div>
-    <div class="marquee-item"><span class="marquee-dot"></span> PURETÉ ABSOLUE</div>
-    <div class="marquee-item"><span class="marquee-dot"></span> <span class="marquee-highlight">COLD EXTRACTION</span></div>
-    <div class="marquee-item"><span class="marquee-dot"></span> PREMIUM VAPORIZERS</div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════ COLLECTIONS ═══════════════════════════════════ -->
-<section id="collections">
-  <div class="container">
-    <div class="section-header reveal">
-      <span class="section-label">// Nos Collections //</span>
-      <h2 class="section-title">Univers Whole Melt</h2>
-      <p class="section-subtitle">Trois lignes premium pour chaque moment et chaque état d'esprit.</p>
+<!-- MATCHES -->
+<section id="matches">
+  <div class="matches-header">
+    <div>
+      <div class="section-label">✦ Calendrier des matchs</div>
+      <h2 class="section-title">Sélectionnez <em>votre match</em></h2>
     </div>
-    <div class="collections-grid">
-      <div class="collection-card" style="transition-delay:0.1s;">
-        <div class="collection-bg col-1-bg"></div>
-        <div class="collection-content">
-          <span class="collection-tag">// Ligne Signature //</span>
-          <h3 class="collection-name">Live Diamond Series</h3>
-          <p class="collection-desc">Notre gamme flagship. Extraits à froid, pureté maximale, expérience cristalline.</p>
-          <a href="#products" class="btn-sm">Explorer →</a>
-        </div>
+    <div class="matches-filters">
+      <button class="filter-btn active" onclick="filterMatches('all', this)">Tous</button>
+      <button class="filter-btn" onclick="filterMatches('usa', this)">USA</button>
+      <button class="filter-btn" onclick="filterMatches('canada', this)">Canada</button>
+      <button class="filter-btn" onclick="filterMatches('mexique', this)">Mexique</button>
+    </div>
+  </div>
+  <div class="matches-grid" id="matches-grid"></div>
+</section>
+
+<!-- MAP -->
+<section id="map-section">
+  <div class="map-wrap">
+    <div class="section-label">✦ Carte des stades</div>
+    <h2 class="section-title">16 stades · <em>3 pays</em></h2>
+    <p class="section-desc">USA, Canada, Mexique — une Coupe du Monde sur deux continents.</p>
+    <div id="stade-map"></div>
+  </div>
+</section>
+
+<!-- EXPERIENCES -->
+<section id="experiences">
+  <div class="max-w" style="margin-bottom:60px">
+    <div class="section-label">✦ Services inclus</div>
+    <h2 class="section-title">L'excellence à <em>chaque instant</em></h2>
+  </div>
+  <div class="exp-grid">
+    <div class="exp-card">
+      <img src="https://images.unsplash.com/photo-1540147269203-d640ab1ad27a?w=800&q=80" alt="Loge VIP">
+      <div class="exp-overlay">
+        <div class="exp-icon">🏟️</div>
+        <div class="exp-title">Loges VIP Exclusives</div>
+        <div class="exp-desc">Places en tribune présidentielle avec service de conciergerie dédié et champagne à volonté.</div>
       </div>
-      <div class="collection-card" style="transition-delay:0.2s;">
-        <div class="collection-bg col-2-bg"></div>
-        <div class="collection-content">
-          <span class="collection-tag">// Premium //</span>
-          <h3 class="collection-name">Live Resin Elite</h3>
-          <p class="collection-desc">Saveurs intenses, terpènes préservés, richesse aromatique inégalée.</p>
-          <a href="#products" class="btn-sm">Explorer →</a>
-        </div>
+    </div>
+    <div class="exp-card">
+      <img src="https://images.unsplash.com/photo-1540188246626-2ef7ab4e10dc?w=800&q=80" alt="Jet privé">
+      <div class="exp-overlay">
+        <div class="exp-icon">✈️</div>
+        <div class="exp-title">Jets Privés</div>
+        <div class="exp-desc">Transferts en jet privé entre les villes hôtes. Bagages illimités, menu gastronomique à bord.</div>
       </div>
-      <div class="collection-card" style="transition-delay:0.3s;">
-        <div class="collection-bg col-3-bg"></div>
-        <div class="collection-content">
-          <span class="collection-tag">// Exclusif //</span>
-          <h3 class="collection-name">Limited Drops</h3>
-          <p class="collection-desc">Éditions limitées réservées aux collectionneurs. Souches rares, quantités comptées.</p>
-          <a href="#contact" class="btn-sm">Contacter →</a>
-        </div>
+    </div>
+    <div class="exp-card">
+      <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80" alt="Gastronomie">
+      <div class="exp-overlay">
+        <div class="exp-icon">🍽️</div>
+        <div class="exp-title">Gastronomie d'Exception</div>
+        <div class="exp-desc">Tables étoilées réservées, menus dégustation signés par des chefs Michelin, caves à vins d'exception.</div>
+      </div>
+    </div>
+    <div class="exp-card">
+      <img src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&q=80" alt="Hôtel luxe">
+      <div class="exp-overlay">
+        <div class="exp-icon">🏨</div>
+        <div class="exp-title">Hôtels Ultra-Luxe</div>
+        <div class="exp-desc">Suites présidentielles dans les meilleures adresses — Four Seasons, Aman, Ritz-Carlton.</div>
+      </div>
+    </div>
+    <div class="exp-card">
+      <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&q=80" alt="Chauffeur">
+      <div class="exp-overlay">
+        <div class="exp-icon">🚗</div>
+        <div class="exp-title">Chauffeurs Privés</div>
+        <div class="exp-desc">Mercedes Classe S ou Bentley avec chauffeur en livrée 24h/24. Accès VIP direct au stade.</div>
+      </div>
+    </div>
+    <div class="exp-card">
+      <img src="https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=800&q=80" alt="Héliport">
+      <div class="exp-overlay">
+        <div class="exp-icon">🚁</div>
+        <div class="exp-title">Transferts Héliportés</div>
+        <div class="exp-desc">Arrivée en hélicoptère directement sur les toits des hôtels partenaires. Vue panoramique garantie.</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════ BRAND ═══════════════════════════════════ -->
-<section id="brand">
-  <div class="container">
-    <div class="brand-inner">
-      <div class="brand-visual reveal">
-        <div class="brand-visual-box bvb-main">
-          <div>
-            <div class="brand-logo-big">WM</div>
-            <div style="font-family:var(--font-mono);font-size:0.6rem;letter-spacing:0.4em;color:rgba(255,255,255,0.3);text-align:center;margin-top:0.8rem;text-transform:uppercase;">Since 2020</div>
-          </div>
-        </div>
-        <div class="brand-glow-strip"></div>
-        <div class="brand-card-float bcf-1">
-          <span class="bcf-val">99.8%</span>
-          Taux de pureté
-        </div>
-        <div class="brand-card-float bcf-2">
-          <span class="bcf-val">#1</span>
-          Premium Extracts
-        </div>
+<!-- PACKS -->
+<section id="packs">
+  <div class="max-w" style="margin-bottom:60px">
+    <div class="section-label">✦ Nos offres</div>
+    <h2 class="section-title">Choisissez votre <em>niveau d'exception</em></h2>
+    <p class="section-desc">Trois formules pensées pour répondre à toutes les exigences. Prix par personne, transferts inclus.</p>
+  </div>
+  <div class="packs-grid">
+    <div class="pack-card">
+      <div class="pack-tier">✦ Formule 1</div>
+      <div class="pack-name">Prestige</div>
+      <div class="pack-tagline">L'entrée dans le monde du football d'exception</div>
+      <div class="pack-price"><sub>à partir de</sub> 5 000€</div>
+      <div class="pack-person">par personne · 3 nuits incluses</div>
+      <ul class="pack-features">
+        <li><span class="pack-check">✦</span>Billet tribune VIP catégorie 1</li>
+        <li><span class="pack-check">✦</span>Hôtel 5★ (3 nuits, suite standard)</li>
+        <li><span class="pack-check">✦</span>Transferts aéroport en berline</li>
+        <li><span class="pack-check">✦</span>Dîner gastronomique (2 personnes)</li>
+        <li><span class="pack-check">✦</span>Accréditations VIP officielles</li>
+        <li><span class="pack-check">✦</span>Conciergerie dédiée 24/7</li>
+      </ul>
+      <button class="btn-primary" style="width:100%" onclick="openTunnel('prestige', 5000)">Réserver ce pack</button>
+    </div>
+    <div class="pack-card featured">
+      <div class="pack-tier">✦ Formule 2</div>
+      <div class="pack-name">Signature</div>
+      <div class="pack-tagline">L'expérience complète pour les connaisseurs</div>
+      <div class="pack-price"><sub>à partir de</sub> 15 000€</div>
+      <div class="pack-person">par personne · 5 nuits incluses</div>
+      <ul class="pack-features">
+        <li><span class="pack-check">✦</span>Loge présidentielle (8 personnes max)</li>
+        <li><span class="pack-check">✦</span>Hôtel ultra-luxe (5 nuits, suite senior)</li>
+        <li><span class="pack-check">✦</span>Transferts en Mercedes Classe S</li>
+        <li><span class="pack-check">✦</span>Dîner chef étoilé (table privée)</li>
+        <li><span class="pack-check">✦</span>Rencontre avec anciens joueurs</li>
+        <li><span class="pack-check">✦</span>Visite terrain avant le match</li>
+        <li><span class="pack-check">✦</span>Bar premium open bar en loge</li>
+        <li><span class="pack-check">✦</span>Butler personnel</li>
+      </ul>
+      <button class="btn-primary" style="width:100%" onclick="openTunnel('signature', 15000)">Réserver ce pack</button>
+    </div>
+    <div class="pack-card">
+      <div class="pack-tier">✦ Formule 3</div>
+      <div class="pack-name">Absolu</div>
+      <div class="pack-tagline">L'expérience ultime. Sans limite.</div>
+      <div class="pack-price"><sub>à partir de</sub> 50 000€</div>
+      <div class="pack-person">par personne · 7 nuits incluses</div>
+      <ul class="pack-features">
+        <li><span class="pack-check">✦</span>Suite présidentielle dans 2 villes</li>
+        <li><span class="pack-check">✦</span>Vol privé aller-retour (Falcon 900)</li>
+        <li><span class="pack-check">✦</span>Transfert héliporteur hôtel → stade</li>
+        <li><span class="pack-check">✦</span>Loge FIFA ultra-premium (finale)</li>
+        <li><span class="pack-check">✦</span>Accès backstage et vestiaires</li>
+        <li><span class="pack-check">✦</span>Chef privé en suite 24/7</li>
+        <li><span class="pack-check">✦</span>Photographe professionnel dédié</li>
+        <li><span class="pack-check">✦</span>Cérémonie d'accueil personnalisée</li>
+      </ul>
+      <button class="btn-primary" style="width:100%" onclick="openTunnel('absolu', 50000)">Réserver ce pack</button>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="max-w" style="margin-bottom:60px">
+    <div class="section-label">✦ Ils nous ont fait confiance</div>
+    <h2 class="section-title">Des expériences <em>inoubliables</em></h2>
+  </div>
+  <div class="testimonials-grid">
+    <div class="testimonial-card">
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text">"Une organisation parfaite du début à la fin. La loge présidentielle était au-delà de mes espérances. Je recommande sans hésitation à tous les amateurs de football exigeants."</div>
+      <div class="testi-author">
+        <img class="testi-avatar" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80" alt="">
+        <div><div class="testi-name">Alexandre M.</div><div class="testi-role">PDG · Paris, France</div></div>
       </div>
-      <div class="brand-text reveal" style="transition-delay:0.2s;">
-        <span class="section-label" style="text-align:left;display:block;margin-bottom:1rem;">// Notre Histoire //</span>
-        <h2>Forger l'excellence,<br><span>une extraction à la fois.</span></h2>
-        <p>Whole Melt est né d'une obsession : créer les extraits les plus purs, les plus savoureux, les plus puissants du marché. Depuis 2020, nous défions les standards de l'industrie avec une approche artisanale et une technologie de pointe.</p>
-        <p>Chaque produit est le résultat d'une extraction à froid méticuleuse, préservant l'intégralité des terpènes naturels pour une expérience sensorielle hors du commun. Aucun compromis. Aucune concession.</p>
-        <div class="brand-pillars">
-          <div class="pillar">
-            <span class="pillar-icon">❄️</span>
-            <div class="pillar-name">Cold Extraction</div>
-            <div class="pillar-desc">Technologie d'extraction à froid pour préserver les terpènes.</div>
-          </div>
-          <div class="pillar">
-            <span class="pillar-icon">🔬</span>
-            <div class="pillar-name">Lab Tested</div>
-            <div class="pillar-desc">Chaque lot certifié par laboratoire indépendant.</div>
-          </div>
-          <div class="pillar">
-            <span class="pillar-icon">🌿</span>
-            <div class="pillar-name">Source Premium</div>
-            <div class="pillar-desc">Plantes sélectionnées par nos experts botanistes.</div>
-          </div>
-          <div class="pillar">
-            <span class="pillar-icon">✦</span>
-            <div class="pillar-name">Artisanal</div>
-            <div class="pillar-desc">Petits lots, attention au détail, qualité constante.</div>
-          </div>
-        </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text">"Le pack Absolu pour la finale — une expérience qui restera gravée à jamais. L'accès aux vestiaires et le vol en jet privé étaient tout simplement exceptionnels."</div>
+      <div class="testi-author">
+        <img class="testi-avatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80" alt="">
+        <div><div class="testi-name">Sophie L.</div><div class="testi-role">Directrice artistique · Genève</div></div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text">"Nous avons réservé pour 8 personnes pour la demi-finale. Le service de conciergerie était disponible à toute heure. Une réussite totale pour notre groupe."</div>
+      <div class="testi-author">
+        <img class="testi-avatar" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80" alt="">
+        <div><div class="testi-name">Karim B.</div><div class="testi-role">Entrepreneur · Dubai</div></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════ WHOLESALE ═══════════════════════════════════ -->
-<section id="wholesale">
-  <div class="container">
-    <div class="wholesale-inner reveal">
-      <span class="section-label" style="display:block;margin-bottom:1rem;">// Partenaires B2B //</span>
-      <h2>Programme Wholesale<br><span style="background:linear-gradient(135deg,var(--neon-pink),var(--neon-violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Whole Melt</span></h2>
-      <p>Rejoignez notre réseau de distributeurs premium sélectionnés. Accès prioritaire aux nouvelles références, conditions exclusives et support dédié pour les professionnels.</p>
-      <div class="wholesale-perks">
-        <span class="perk">✓ Prix distributeur</span>
-        <span class="perk">✓ Stock prioritaire</span>
-        <span class="perk">✓ Manager dédié</span>
-        <span class="perk">✓ Drops en avant-première</span>
-        <span class="perk">✓ Formation produits</span>
-        <span class="perk">✓ Matériel marketing</span>
-      </div>
-      <a href="#contact" class="btn-primary">Devenir Partenaire →</a>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════ CONTACT ═══════════════════════════════════ -->
-<section id="contact">
-  <div class="container">
-    <div class="contact-inner">
-      <div class="contact-info reveal">
-        <span class="section-label" style="text-align:left;display:block;margin-bottom:1rem;">// Contactez-nous //</span>
-        <h2>Discutons de votre projet ensemble.</h2>
-        <p>Une question sur un produit, un projet de partenariat, ou simplement envie d'en savoir plus ? Notre équipe vous répond dans les 24h.</p>
-        <div style="margin-bottom:2rem;">
-          <div style="display:flex;align-items:center;gap:0.8rem;margin-bottom:0.8rem;">
-            <span style="width:36px;height:36px;background:rgba(255,45,120,0.1);border:1px solid rgba(255,45,120,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;">📧</span>
-            <span style="font-family:var(--font-mono);font-size:0.75rem;color:rgba(255,255,255,0.45);">contact@wholemelt.eu</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:0.8rem;">
-            <span style="width:36px;height:36px;background:rgba(184,71,255,0.1);border:1px solid rgba(184,71,255,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;">📱</span>
-            <span style="font-family:var(--font-mono);font-size:0.75rem;color:rgba(255,255,255,0.45);">@wholemelt.extracts</span>
-          </div>
-        </div>
-        <div class="contact-socials">
-          <a href="#" class="social-link" title="Instagram">📸</a>
-          <a href="#" class="social-link" title="Telegram">✈️</a>
-          <a href="#" class="social-link" title="Twitter">𝕏</a>
-          <a href="#" class="social-link" title="TikTok">🎵</a>
-        </div>
-      </div>
-      <div class="contact-form reveal" style="transition-delay:0.2s;">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Prénom</label>
-            <input type="text" placeholder="Alexandre">
-          </div>
-          <div class="form-group">
-            <label>Nom</label>
-            <input type="text" placeholder="Martin">
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" placeholder="votre@email.com">
-        </div>
-        <div class="form-group">
-          <label>Sujet</label>
-          <select>
-            <option value="">Sélectionnez un sujet</option>
-            <option>Question produit</option>
-            <option>Partenariat Wholesale</option>
-            <option>Presse & Médias</option>
-            <option>Autre</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Message</label>
-          <textarea rows="5" placeholder="Votre message ici..."></textarea>
-        </div>
-        <button class="btn-primary" style="width:100%;justify-content:center;" onclick="handleFormSubmit(event)">
-          Envoyer le Message →
-        </button>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════ FOOTER ═══════════════════════════════════ -->
+<!-- FOOTER -->
 <footer>
-  <div class="footer-top">
-    <div class="footer-brand-col">
-      <span class="footer-logo">WHOLE MELT</span>
-      <p>L'excellence en extraits premium. Pureté absolue, expérience inégalée, passion de l'artisanat.</p>
-      <div style="display:flex;gap:0.8rem;margin-top:1.5rem;">
-        <a href="#" class="social-link" style="width:36px;height:36px;font-size:0.9rem;">📸</a>
-        <a href="#" class="social-link" style="width:36px;height:36px;font-size:0.9rem;">✈️</a>
-        <a href="#" class="social-link" style="width:36px;height:36px;font-size:0.9rem;">𝕏</a>
-        <a href="#" class="social-link" style="width:36px;height:36px;font-size:0.9rem;">🎵</a>
-      </div>
+  <div class="footer-grid">
+    <div>
+      <div class="footer-logo">⬡ WC2026 VIP</div>
+      <div class="footer-desc">La référence des expériences premium pour la Coupe du Monde FIFA 2026™ aux États-Unis, au Canada et au Mexique.</div>
     </div>
-    <div class="footer-col">
-      <h4>Produits</h4>
-      <ul>
-        <li><a href="#">Live Diamond</a></li>
-        <li><a href="#">Live Resin</a></li>
-        <li><a href="#">Hybrid Series</a></li>
-        <li><a href="#">Indica Premium</a></li>
-        <li><a href="#">Limited Drops</a></li>
+    <div>
+      <div class="footer-col-title">Navigation</div>
+      <ul class="footer-links">
+        <li><a href="#matches">Calendrier</a></li>
+        <li><a href="#experiences">Expériences</a></li>
+        <li><a href="#packs">Packs VIP</a></li>
+        <li><a href="#map-section">Stades</a></li>
       </ul>
     </div>
-    <div class="footer-col">
-      <h4>Marque</h4>
-      <ul>
-        <li><a href="#brand">Notre Histoire</a></li>
-        <li><a href="#">Processus</a></li>
-        <li><a href="#">Certifications</a></li>
-        <li><a href="#wholesale">Wholesale</a></li>
-        <li><a href="#">Presse</a></li>
+    <div>
+      <div class="footer-col-title">Services</div>
+      <ul class="footer-links">
+        <li><a href="#">Loges VIP</a></li>
+        <li><a href="#">Jets privés</a></li>
+        <li><a href="#">Hôtels luxe</a></li>
+        <li><a href="#">Gastronomie</a></li>
       </ul>
     </div>
-    <div class="footer-col">
-      <h4>Support</h4>
-      <ul>
-        <li><a href="#contact">Contact</a></li>
-        <li><a href="#">FAQ</a></li>
-        <li><a href="#">Livraison</a></li>
-        <li><a href="#">CGV</a></li>
-        <li><a href="#">Confidentialité</a></li>
+    <div>
+      <div class="footer-col-title">Contact</div>
+      <ul class="footer-links">
+        <li><a href="#">+33 1 23 45 67 89</a></li>
+        <li><a href="#">vip@wc2026.com</a></li>
+        <li><a href="#">WhatsApp VIP</a></li>
+        <li><a href="#">Mentions légales</a></li>
       </ul>
     </div>
   </div>
   <div class="footer-bottom">
-    <p>© 2025 Whole Melt Extracts. Tous droits réservés.</p>
-    <p style="display:flex;align-items:center;gap:0.5rem;">Fait avec <span style="color:var(--neon-pink);">♥</span> par Whole Melt</p>
-  </div>
-  <div class="footer-disclaimer">
-    ⚠️ Ce site est réservé aux adultes de 18 ans et plus. Les produits présentés sont destinés à un usage légal uniquement. Whole Melt Extracts décline toute responsabilité en cas d'usage non conforme à la législation locale. Consommez de manière responsable.
+    <span>© 2025 WC2026 VIP. Tous droits réservés.</span>
+    <span>Paiement sécurisé · SSL · 3D Secure</span>
   </div>
 </footer>
 
+<!-- ══ OVERLAYS ══ -->
+
+<!-- MATCH DETAIL -->
+<div class="overlay" id="overlay-match">
+  <div class="overlay-inner">
+    <div class="overlay-panel" style="max-width:960px">
+      <div class="overlay-header">
+        <div class="overlay-title" id="match-detail-title">Détail du match</div>
+        <button class="overlay-close" onclick="closeOverlay('overlay-match')">✕</button>
+      </div>
+      <div id="match-detail-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CART -->
+<div class="overlay" id="overlay-cart">
+  <div class="overlay-inner">
+    <div class="overlay-panel">
+      <div class="tunnel-progress">
+        <div class="progress-step done"><div class="step-num">✓</div><span>Match</span></div>
+        <div class="progress-line done"></div>
+        <div class="progress-step done"><div class="step-num">✓</div><span>Pack</span></div>
+        <div class="progress-line done"></div>
+        <div class="progress-step active"><div class="step-num">3</div><span>Panier</span></div>
+        <div class="progress-line"></div>
+        <div class="progress-step"><div class="step-num">4</div><span>Paiement</span></div>
+        <div class="progress-line"></div>
+        <div class="progress-step"><div class="step-num">5</div><span>Confirmation</span></div>
+      </div>
+      <div class="overlay-header">
+        <div class="overlay-title">Mon Panier</div>
+        <button class="overlay-close" onclick="closeOverlay('overlay-cart')">✕</button>
+      </div>
+      <div class="overlay-body" id="cart-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAYMENT -->
+<div class="overlay" id="overlay-payment">
+  <div class="overlay-inner">
+    <div class="overlay-panel" style="max-width:960px">
+      <div class="tunnel-progress">
+        <div class="progress-step done"><div class="step-num">✓</div><span>Match</span></div>
+        <div class="progress-line done"></div>
+        <div class="progress-step done"><div class="step-num">✓</div><span>Pack</span></div>
+        <div class="progress-line done"></div>
+        <div class="progress-step done"><div class="step-num">✓</div><span>Panier</span></div>
+        <div class="progress-line done"></div>
+        <div class="progress-step active"><div class="step-num">4</div><span>Paiement</span></div>
+        <div class="progress-line"></div>
+        <div class="progress-step"><div class="step-num">5</div><span>Confirmation</span></div>
+      </div>
+      <div class="overlay-header">
+        <div class="overlay-title">Paiement Sécurisé</div>
+        <button class="overlay-close" onclick="closeOverlay('overlay-payment')">✕</button>
+      </div>
+      <div class="overlay-body" id="payment-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRMATION -->
+<div class="overlay" id="overlay-confirm">
+  <div class="overlay-inner">
+    <div class="overlay-panel">
+      <div class="tunnel-progress">
+        <div class="progress-step done"><div class="step-num">✓</div><span>Match</span></div>
+        <div class="progress-line done"></div>
+        <div class="progress-step done"><div class="step-num">✓</div><span>Pack</span></div>
+        <div class="progress-line done"></div>
+        <div class="progress-step done"><div class="step-num">✓</div><span>Panier</span></div>
+        <div class="progress-line done"></div>
+        <div class="progress-step done"><div class="step-num">✓</div><span>Paiement</span></div>
+        <div class="progress-line done"></div>
+        <div class="progress-step done"><div class="step-num">✓</div><span>Confirmation</span></div>
+      </div>
+      <div class="overlay-header">
+        <div class="overlay-title" style="color:var(--green)">Réservation Confirmée</div>
+        <button class="overlay-close" onclick="closeAll(); showHome()">✕</button>
+      </div>
+      <div class="overlay-body" id="confirm-body"></div>
+    </div>
+  </div>
+</div>
+
 <script>
-// ─── AGE GATE ───
-function enterSite() {
-  const gate = document.getElementById('ageGate');
-  gate.style.transition = 'opacity 0.6s ease';
-  gate.style.opacity = '0';
-  setTimeout(() => gate.classList.add('hidden'), 600);
-  sessionStorage.setItem('ageVerified', '1');
-}
-if (sessionStorage.getItem('ageVerified')) {
-  document.getElementById('ageGate').classList.add('hidden');
+// ══ DATA ══
+const MATCHES = [
+  { id: 1, team1: 'France', team2: 'Brésil', flag1: 'https://flagcdn.com/w80/fr.png', flag2: 'https://flagcdn.com/w80/br.png', date: '14 Juin 2026', time: '21:00', stade: 'MetLife Stadium', ville: 'New York', country: 'usa', capacity: '82 500', status: 'high', price: 8500, img: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&q=80' },
+  { id: 2, team1: 'Espagne', team2: 'Argentine', flag1: 'https://flagcdn.com/w80/es.png', flag2: 'https://flagcdn.com/w80/ar.png', date: '17 Juin 2026', time: '18:00', stade: 'SoFi Stadium', ville: 'Los Angeles', country: 'usa', capacity: '70 240', status: 'almost', price: 12000, img: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&q=80' },
+  { id: 3, team1: 'Angleterre', team2: 'Allemagne', flag1: 'https://flagcdn.com/w80/gb.png', flag2: 'https://flagcdn.com/w80/de.png', date: '19 Juin 2026', time: '20:00', stade: 'AT&T Stadium', ville: 'Dallas', country: 'usa', capacity: '80 000', status: 'available', price: 7500, img: 'https://images.unsplash.com/photo-1587491439149-bd2ff295d450?w=800&q=80' },
+  { id: 4, team1: 'Portugal', team2: 'Pays-Bas', flag1: 'https://flagcdn.com/w80/pt.png', flag2: 'https://flagcdn.com/w80/nl.png', date: '21 Juin 2026', time: '21:00', stade: 'Estadio Azteca', ville: 'Mexico City', country: 'mexique', capacity: '87 523', status: 'high', price: 9500, img: 'https://images.unsplash.com/photo-1518604666860-9ed391f76460?w=800&q=80' },
+  { id: 5, team1: 'Italie', team2: 'Mexique', flag1: 'https://flagcdn.com/w80/it.png', flag2: 'https://flagcdn.com/w80/mx.png', date: '24 Juin 2026', time: '19:00', stade: 'BMO Field', ville: 'Toronto', country: 'canada', capacity: '45 736', status: 'available', price: 6500, img: 'https://images.unsplash.com/photo-1551958219-acbc1b0a4a58?w=800&q=80' },
+  { id: 6, team1: 'Belgique', team2: 'Maroc', flag1: 'https://flagcdn.com/w80/be.png', flag2: 'https://flagcdn.com/w80/ma.png', date: '26 Juin 2026', time: '17:00', stade: 'Levi\'s Stadium', ville: 'San Francisco', country: 'usa', capacity: '68 500', status: 'available', price: 7000, img: 'https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=800&q=80' },
+  { id: 7, team1: 'Demi-finale 1', team2: 'TBD', flag1: 'https://flagcdn.com/w80/un.png', flag2: 'https://flagcdn.com/w80/un.png', date: '11 Juil 2026', time: '21:00', stade: 'Rose Bowl', ville: 'Pasadena', country: 'usa', capacity: '90 888', status: 'almost', price: 22000, img: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=800&q=80' },
+  { id: 8, team1: '🏆 FINALE', team2: 'MetLife', flag1: 'https://flagcdn.com/w80/un.png', flag2: 'https://flagcdn.com/w80/un.png', date: '19 Juil 2026', time: '21:00', stade: 'MetLife Stadium', ville: 'New York', country: 'usa', capacity: '82 500', status: 'almost', price: 45000, img: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&q=80' },
+];
+
+const HOTELS = {
+  'New York': [
+    { name: 'The Plaza Hotel', stars: '★★★★★', price: 'dès 2 800€/nuit', img: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&q=80' },
+    { name: 'Four Seasons Downtown', stars: '★★★★★', price: 'dès 1 900€/nuit', img: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=200&q=80' }
+  ],
+  'Los Angeles': [
+    { name: 'Chateau Marmont', stars: '★★★★★', price: 'dès 2 200€/nuit', img: 'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=200&q=80' },
+    { name: 'The Beverly Hills Hotel', stars: '★★★★★', price: 'dès 2 500€/nuit', img: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=200&q=80' }
+  ],
+  'default': [
+    { name: 'Four Seasons', stars: '★★★★★', price: 'dès 1 800€/nuit', img: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&q=80' },
+    { name: 'Ritz-Carlton', stars: '★★★★★', price: 'dès 2 100€/nuit', img: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=200&q=80' }
+  ]
+};
+
+const RESTAURANTS = [
+  { name: 'Le Bernardin', stars: '★★★ Michelin', price: 'Menu 380€/pers.', img: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=200&q=80' },
+  { name: 'Eleven Madison Park', stars: '★★★ Michelin', price: 'Menu 420€/pers.', img: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=200&q=80' }
+];
+
+const STADES = [
+  { name: 'MetLife Stadium', lat: 40.8135, lng: -74.0745, ville: 'New York', capacity: '82 500', country: 'USA' },
+  { name: 'AT&T Stadium', lat: 32.7473, lng: -97.0944, ville: 'Dallas', capacity: '80 000', country: 'USA' },
+  { name: 'SoFi Stadium', lat: 33.9535, lng: -118.3392, ville: 'Los Angeles', capacity: '70 240', country: 'USA' },
+  { name: 'Levi\'s Stadium', lat: 37.4033, lng: -121.9694, ville: 'San Jose', capacity: '68 500', country: 'USA' },
+  { name: 'Rose Bowl', lat: 34.1614, lng: -118.1676, ville: 'Pasadena', capacity: '90 888', country: 'USA' },
+  { name: 'Arrowhead Stadium', lat: 39.0489, lng: -94.4839, ville: 'Kansas City', capacity: '76 416', country: 'USA' },
+  { name: 'Lincoln Financial Field', lat: 39.9007, lng: -75.1675, ville: 'Philadelphia', capacity: '69 796', country: 'USA' },
+  { name: 'NRG Stadium', lat: 29.6847, lng: -95.4107, ville: 'Houston', capacity: '72 220', country: 'USA' },
+  { name: 'Empower Field', lat: 39.7439, lng: -105.0201, ville: 'Denver', capacity: '76 125', country: 'USA' },
+  { name: 'Estadio Azteca', lat: 19.3030, lng: -99.1506, ville: 'Mexico City', capacity: '87 523', country: 'Mexique' },
+  { name: 'Estadio Akron', lat: 20.6867, lng: -103.4666, ville: 'Guadalajara', capacity: '49 850', country: 'Mexique' },
+  { name: 'Estadio BBVA', lat: 25.6693, lng: -100.2437, ville: 'Monterrey', capacity: '53 500', country: 'Mexique' },
+  { name: 'BMO Field', lat: 43.6332, lng: -79.4184, ville: 'Toronto', capacity: '45 736', country: 'Canada' },
+  { name: 'BC Place', lat: 49.2768, lng: -123.1119, ville: 'Vancouver', capacity: '54 500', country: 'Canada' },
+];
+
+let cart = { match: null, pack: null };
+
+// ══ RENDER MATCHES ══
+function renderMatches(filter = 'all') {
+  const grid = document.getElementById('matches-grid');
+  const filtered = filter === 'all' ? MATCHES : MATCHES.filter(m => m.country === filter);
+  grid.innerHTML = filtered.map(m => `
+    <div class="match-card" onclick="openMatchDetail(${m.id})">
+      <div class="match-status status-${m.status}">
+        <span>${m.status === 'available' ? '●' : m.status === 'high' ? '▲' : '⚠'}</span>
+        ${m.status === 'available' ? 'Disponible' : m.status === 'high' ? 'Forte demande' : 'Presque complet'}
+      </div>
+      <div class="match-teams">
+        <div class="team-info">
+          <img class="team-flag" src="${m.flag1}" alt="${m.team1}" onerror="this.style.display='none'">
+          <span class="team-name">${m.team1}</span>
+        </div>
+        <span class="match-vs">VS</span>
+        <div class="team-info right">
+          <span class="team-name">${m.team2}</span>
+          <img class="team-flag" src="${m.flag2}" alt="${m.team2}" onerror="this.style.display='none'">
+        </div>
+      </div>
+      <div class="match-meta">
+        <div class="match-meta-item"><div class="match-meta-label">Date</div><div class="match-meta-val">${m.date}</div></div>
+        <div class="match-meta-item"><div class="match-meta-label">Heure</div><div class="match-meta-val">${m.time} (heure locale)</div></div>
+        <div class="match-meta-item"><div class="match-meta-label">Stade</div><div class="match-meta-val">${m.stade}</div></div>
+        <div class="match-meta-item"><div class="match-meta-label">Capacité</div><div class="match-meta-val">${m.capacity}</div></div>
+      </div>
+      <div class="match-footer">
+        <div class="match-price"><small>à partir de</small>${m.price.toLocaleString('fr-FR')}€</div>
+        <button class="btn-sm" onclick="event.stopPropagation(); openMatchDetail(${m.id})">Voir détails →</button>
+      </div>
+    </div>
+  `).join('');
 }
 
-// ─── CURSOR ───
-const cursor = document.getElementById('cursor');
-const cursorRing = document.getElementById('cursorRing');
-let cx = 0, cy = 0, rx = 0, ry = 0;
-document.addEventListener('mousemove', e => {
-  cx = e.clientX; cy = e.clientY;
-  cursor.style.left = cx + 'px';
-  cursor.style.top = cy + 'px';
-});
-function animRing() {
-  rx += (cx - rx) * 0.12;
-  ry += (cy - ry) * 0.12;
-  cursorRing.style.left = rx + 'px';
-  cursorRing.style.top = ry + 'px';
-  requestAnimationFrame(animRing);
-}
-animRing();
-document.addEventListener('mousedown', () => cursor.classList.add('clicked'));
-document.addEventListener('mouseup', () => cursor.classList.remove('clicked'));
-document.querySelectorAll('a,button,.product-card,.collection-card,.pillar,.social-link,.flavor-tag').forEach(el => {
-  el.addEventListener('mouseenter', () => cursorRing.classList.add('hovered'));
-  el.addEventListener('mouseleave', () => cursorRing.classList.remove('hovered'));
-});
-
-// ─── NAVBAR ───
-window.addEventListener('scroll', () => {
-  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 60);
-});
-
-// ─── MOBILE MENU ───
-function toggleMenu() {
-  document.getElementById('mobileNav').classList.toggle('open');
+function filterMatches(f, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMatches(f);
 }
 
-// ─── BACKGROUND CANVAS (particles + aurora) ───
-const canvas = document.getElementById('bg-canvas');
-const ctx = canvas.getContext('2d');
-let W, H, particles = [];
-function resize() {
-  W = canvas.width = window.innerWidth;
-  H = canvas.height = window.innerHeight;
+// ══ MATCH DETAIL ══
+function openMatchDetail(id) {
+  const m = MATCHES.find(x => x.id === id);
+  cart.match = m;
+  document.getElementById('match-detail-title').textContent = `${m.team1} vs ${m.team2}`;
+  const hotels = HOTELS[m.ville] || HOTELS['default'];
+  document.getElementById('match-detail-body').innerHTML = `
+    <div class="match-detail-hero">
+      <img src="${m.img}" alt="${m.stade}">
+      <div class="match-detail-overlay">
+        <div class="match-detail-teams">${m.team1} <span style="color:var(--gold)">vs</span> ${m.team2}</div>
+        <div class="match-detail-info">📍 ${m.stade} · ${m.ville} · ${m.date} à ${m.time}</div>
+      </div>
+    </div>
+    <div class="overlay-body">
+      <div class="detail-section">
+        <div class="detail-section-title">📸 Galerie du stade</div>
+        <div class="photo-mini-grid">
+          <img src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=400&q=80" alt="">
+          <img src="https://images.unsplash.com/photo-1540147269203-d640ab1ad27a?w=400&q=80" alt="">
+          <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400&q=80" alt="">
+          <img src="https://images.unsplash.com/photo-1587491439149-bd2ff295d450?w=400&q=80" alt="">
+        </div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title">🏨 Hôtels recommandés · ${m.ville}</div>
+        <div class="hotels-grid">
+          ${hotels.map(h => `
+            <div class="hotel-card">
+              <img class="hotel-img" src="${h.img}" alt="${h.name}">
+              <div class="hotel-info">
+                <div class="hotel-name">${h.name}</div>
+                <div class="hotel-stars">${h.stars}</div>
+                <div class="hotel-price">${h.price}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title">🍽️ Restaurants gastronomiques</div>
+        <div class="restaurants-grid">
+          ${RESTAURANTS.map(r => `
+            <div class="resto-card">
+              <img class="resto-img" src="${r.img}" alt="${r.name}">
+              <div class="resto-info">
+                <div class="resto-name">${r.name}</div>
+                <div class="resto-stars">${r.stars}</div>
+                <div class="resto-price">${r.price}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title">✦ Sélectionnez votre pack</div>
+        <div class="packs-select">
+          <div class="pack-select-card" onclick="selectPack('prestige', 5000, this)">
+            <div class="pack-select-name">Prestige</div>
+            <div class="pack-select-price">${(m.price).toLocaleString('fr-FR')}€</div>
+            <div class="pack-select-desc">Tribune VIP · Hôtel 5★ · Transferts</div>
+          </div>
+          <div class="pack-select-card" onclick="selectPack('signature', m.price * 1.8, this)">
+            <div class="pack-select-name">Signature</div>
+            <div class="pack-select-price">${Math.round(m.price * 1.8).toLocaleString('fr-FR')}€</div>
+            <div class="pack-select-desc">Loge présidentielle · Butler · Dîner</div>
+          </div>
+          <div class="pack-select-card" onclick="selectPack('absolu', m.price * 4.5, this)">
+            <div class="pack-select-name">Absolu</div>
+            <div class="pack-select-price">${Math.round(m.price * 4.5).toLocaleString('fr-FR')}€</div>
+            <div class="pack-select-desc">Jet privé · Loge FIFA · Backstage</div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-primary mt-40" style="width:100%; padding:20px; font-size:14px" onclick="goToCart()">Ajouter au panier →</button>
+    </div>
+  `;
+  document.getElementById('overlay-match').classList.add('active');
 }
-resize();
-window.addEventListener('resize', resize);
 
-class Particle {
-  constructor() { this.reset(); }
-  reset() {
-    this.x = Math.random() * W;
-    this.y = Math.random() * H;
-    this.r = Math.random() * 1.5 + 0.3;
-    this.vx = (Math.random() - 0.5) * 0.25;
-    this.vy = (Math.random() - 0.5) * 0.25 - 0.1;
-    this.alpha = Math.random() * 0.4 + 0.05;
-    const colors = ['255,45,120', '184,71,255', '0,212,255', '255,255,255'];
-    this.color = colors[Math.floor(Math.random() * colors.length)];
-    this.life = 0;
-    this.maxLife = Math.random() * 400 + 200;
+function selectPack(name, price, el) {
+  document.querySelectorAll('.pack-select-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  cart.pack = { name, price };
+}
+
+// ══ CART ══
+function goToCart() {
+  if (!cart.pack) { alert('Veuillez sélectionner un pack.'); return; }
+  closeOverlay('overlay-match');
+  const m = cart.match;
+  const p = cart.pack;
+  document.getElementById('cart-body').innerHTML = `
+    <div class="cart-item">
+      <img class="cart-item-img" src="${m.img}" alt="">
+      <div class="cart-item-info">
+        <div class="cart-item-name">${m.team1} vs ${m.team2}</div>
+        <div class="cart-item-sub">📍 ${m.stade}, ${m.ville}</div>
+        <div class="cart-item-sub">📅 ${m.date} à ${m.time}</div>
+        <div class="cart-item-sub">Pack : <strong style="color:var(--gold)">${p.name.toUpperCase()}</strong></div>
+      </div>
+      <div class="cart-item-price">${Math.round(p.price).toLocaleString('fr-FR')}€</div>
+    </div>
+    <div class="cart-item">
+      <div class="cart-item-info" style="padding:8px 0">
+        <div class="cart-item-sub">Conciergerie VIP 24/7</div>
+        <div class="cart-item-sub">Assurance annulation premium</div>
+        <div class="cart-item-sub">TVA incluse</div>
+      </div>
+      <div style="color:var(--green);font-size:13px;align-self:center">Inclus</div>
+    </div>
+    <div class="cart-total">
+      <div class="cart-total-label">Total TTC</div>
+      <div class="cart-total-price">${Math.round(p.price).toLocaleString('fr-FR')}€</div>
+    </div>
+    <button class="btn-primary" style="width:100%;padding:20px;font-size:14px;margin-top:24px" onclick="goToPayment()">Procéder au paiement sécurisé →</button>
+    <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:16px">🔒 Paiement 100% sécurisé · SSL · 3D Secure · Remboursement garanti</p>
+  `;
+  document.getElementById('overlay-cart').classList.add('active');
+}
+
+// ══ PAYMENT ══
+function goToPayment() {
+  closeOverlay('overlay-cart');
+  const m = cart.match;
+  const p = cart.pack;
+  const total = Math.round(p.price);
+  document.getElementById('payment-body').innerHTML = `
+    <div class="payment-grid">
+      <div class="payment-form">
+        <h3 style="font-family:'Playfair Display',serif;font-size:20px;margin-bottom:24px;color:var(--gold)">Informations personnelles</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Prénom</label>
+            <input class="form-input" type="text" placeholder="Alexandre">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nom</label>
+            <input class="form-input" type="text" placeholder="Dupont">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-input" type="email" placeholder="alexandre@example.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Téléphone</label>
+          <input class="form-input" type="tel" placeholder="+33 6 12 34 56 78">
+        </div>
+        <h3 style="font-family:'Playfair Display',serif;font-size:20px;margin:32px 0 24px;color:var(--gold)">Informations de paiement</h3>
+        <div class="card-icons">
+          <div class="card-icon active" onclick="setCard(this, 'visa')">
+            <svg viewBox="0 0 48 30" fill="none"><rect width="48" height="30" rx="4" fill="#1A1F71"/><text x="8" y="22" font-family="Arial" font-size="12" font-weight="bold" fill="white">VISA</text></svg>
+            Visa
+          </div>
+          <div class="card-icon" onclick="setCard(this, 'mc')">
+            <svg viewBox="0 0 48 30" fill="none"><rect width="48" height="30" rx="4" fill="#252525"/><circle cx="19" cy="15" r="9" fill="#EB001B"/><circle cx="29" cy="15" r="9" fill="#F79E1B"/><path d="M24 8.2a9 9 0 010 13.6A9 9 0 0124 8.2z" fill="#FF5F00"/></svg>
+            Mastercard
+          </div>
+          <div class="card-icon" onclick="setCard(this, 'amex')">
+            <svg viewBox="0 0 48 30" fill="none"><rect width="48" height="30" rx="4" fill="#007BC1"/><text x="6" y="22" font-family="Arial" font-size="9" font-weight="bold" fill="white">AMEX</text></svg>
+            Amex
+          </div>
+          <div class="card-icon" onclick="setCard(this, 'apple')">
+            <svg viewBox="0 0 48 30" fill="none"><rect width="48" height="30" rx="4" fill="#050505"/><text x="8" y="21" font-family="Arial" font-size="11" fill="white">⬡ Pay</text></svg>
+            Apple Pay
+          </div>
+          <div class="card-icon" onclick="setCard(this, 'google')">
+            <svg viewBox="0 0 48 30" fill="none"><rect width="48" height="30" rx="4" fill="#F8F8F8"/><text x="6" y="21" font-family="Arial" font-size="9" font-weight="bold" fill="#333">Google Pay</text></svg>
+            Google Pay
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Numéro de carte</label>
+          <input class="form-input" type="text" placeholder="4242 4242 4242 4242" maxlength="19" oninput="formatCard(this)">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Date d'expiration</label>
+            <input class="form-input" type="text" placeholder="MM/AA" maxlength="5">
+          </div>
+          <div class="form-group">
+            <label class="form-label">CVV</label>
+            <input class="form-input" type="text" placeholder="···" maxlength="4">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nom sur la carte</label>
+          <input class="form-input" type="text" placeholder="ALEXANDRE DUPONT">
+        </div>
+        <button class="btn-primary" style="width:100%;padding:20px;font-size:14px;margin-top:8px" onclick="processPayment()">
+          🔒 Payer ${total.toLocaleString('fr-FR')}€ en toute sécurité
+        </button>
+      </div>
+      <div>
+        <div class="payment-summary">
+          <div class="pay-sum-title">Récapitulatif</div>
+          <div class="pay-sum-line"><span>${m.team1} vs ${m.team2}</span><span></span></div>
+          <div class="pay-sum-line"><span style="color:var(--muted);font-size:12px">Pack ${p.name}</span><span>${total.toLocaleString('fr-FR')}€</span></div>
+          <div class="pay-sum-line"><span style="color:var(--muted);font-size:12px">Services inclus</span><span style="color:var(--green)">Offerts</span></div>
+          <div class="pay-sum-line"><span style="color:var(--muted);font-size:12px">TVA 20%</span><span>Incluse</span></div>
+          <div class="pay-sum-line total"><span>Total</span><span>${total.toLocaleString('fr-FR')}€</span></div>
+          <div class="trust-badges">
+            <div class="trust-badge"><span>✓</span> Paiement 3D Secure</div>
+            <div class="trust-badge"><span>✓</span> SSL 256-bit chiffré</div>
+            <div class="trust-badge"><span>✓</span> Remboursement sous 30 jours</div>
+            <div class="trust-badge"><span>✓</span> Conciergerie VIP 24/7</div>
+          </div>
+        </div>
+        <div style="margin-top:20px;padding:20px;background:rgba(39,174,96,0.06);border:1px solid rgba(39,174,96,0.2);">
+          <div style="font-size:12px;color:var(--green);font-weight:600;margin-bottom:8px">✓ Réservation garantie</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6">Vos billets et documents de voyage vous seront envoyés sous 24h par email et par courrier express.</div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('overlay-payment').classList.add('active');
+}
+
+function setCard(el, type) {
+  document.querySelectorAll('.card-icon').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function formatCard(input) {
+  let v = input.value.replace(/\D/g, '').substring(0, 16);
+  input.value = v.replace(/(.{4})/g, '$1 ').trim();
+}
+
+function processPayment() {
+  closeOverlay('overlay-payment');
+  const m = cart.match;
+  const p = cart.pack;
+  const total = Math.round(p.price);
+  const orderNum = 'WC2026-' + Math.random().toString(36).substring(2,8).toUpperCase();
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('fr-FR') + ' à ' + now.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+  document.getElementById('confirm-body').innerHTML = `
+    <div style="text-align:center;padding:20px 0">
+      <div class="confirm-icon">✓</div>
+      <div class="confirm-title">Merci pour votre réservation !</div>
+      <div class="confirm-sub">Un email de confirmation a été envoyé avec tous vos documents de voyage.</div>
+    </div>
+    <div class="order-number">
+      <div class="order-number-label">Numéro de commande</div>
+      <div class="order-number-val">${orderNum}</div>
+    </div>
+    <div class="confirm-details">
+      <div class="confirm-row"><span class="confirm-row-label">Match</span><span class="confirm-row-val">${m.team1} vs ${m.team2}</span></div>
+      <div class="confirm-row"><span class="confirm-row-label">Stade</span><span class="confirm-row-val">${m.stade}, ${m.ville}</span></div>
+      <div class="confirm-row"><span class="confirm-row-label">Date & heure</span><span class="confirm-row-val">${m.date} à ${m.time}</span></div>
+      <div class="confirm-row"><span class="confirm-row-label">Pack réservé</span><span class="confirm-row-val text-gold">Pack ${p.name.toUpperCase()}</span></div>
+      <div class="confirm-row"><span class="confirm-row-label">Montant total</span><span class="confirm-row-val text-gold">${total.toLocaleString('fr-FR')}€ TTC</span></div>
+      <div class="confirm-row"><span class="confirm-row-label">Date de paiement</span><span class="confirm-row-val">${dateStr}</span></div>
+      <div class="confirm-row"><span class="confirm-row-label">Statut</span><span class="confirm-row-val" style="color:var(--green)">✓ Confirmé</span></div>
+    </div>
+    <button class="pdf-btn" onclick="downloadInvoice('${orderNum}', '${m.team1} vs ${m.team2}', '${m.stade}', '${m.ville}', '${m.date}', '${p.name}', ${total})">
+      📄 Télécharger la facture PDF
+    </button>
+    <div style="margin-top:20px;padding:20px;background:rgba(201,168,76,0.06);border:1px solid var(--border);text-align:center">
+      <div style="font-size:13px;color:var(--muted);line-height:1.8">
+        Notre équipe de conciergerie vous contactera dans les 2 heures.<br>
+        <strong style="color:var(--gold)">+33 1 23 45 67 89</strong> · <strong style="color:var(--gold)">vip@wc2026.com</strong>
+      </div>
+    </div>
+  `;
+  document.getElementById('overlay-confirm').classList.add('active');
+}
+
+function downloadInvoice(orderNum, match, stade, ville, date, pack, total) {
+  const content = `
+FACTURE — WC2026 VIP
+════════════════════════════════════════
+
+Numéro de commande : ${orderNum}
+Date d'émission   : ${new Date().toLocaleDateString('fr-FR')}
+
+════════════════════════════════════════
+DÉTAIL DE LA COMMANDE
+════════════════════════════════════════
+
+Match     : ${match}
+Stade     : ${stade}, ${ville}
+Date      : ${date}
+Pack      : ${pack.toUpperCase()}
+
+════════════════════════════════════════
+FACTURATION
+════════════════════════════════════════
+
+Montant HT  : ${Math.round(total/1.2).toLocaleString('fr-FR')}€
+TVA 20%     : ${Math.round(total - total/1.2).toLocaleString('fr-FR')}€
+TOTAL TTC   : ${total.toLocaleString('fr-FR')}€
+
+Mode de paiement : Carte bancaire sécurisée
+
+════════════════════════════════════════
+WC2026 VIP — Expériences d'exception
++33 1 23 45 67 89 · vip@wc2026.com
+  `.trim();
+  const blob = new Blob([content], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Facture_${orderNum}.txt`;
+  a.click();
+}
+
+// ══ TUNNEL FROM PACK PAGE ══
+function openTunnel(packName, packPrice) {
+  if (MATCHES.length > 0) {
+    cart.match = MATCHES[0];
+    cart.pack = { name: packName, price: packPrice };
+    goToCart();
   }
-  update() {
-    this.x += this.vx; this.y += this.vy; this.life++;
-    if (this.life > this.maxLife || this.x < -5 || this.x > W + 5 || this.y < -5 || this.y > H + 5) this.reset();
-  }
-  draw() {
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(${this.color},${this.alpha * Math.sin(this.life / this.maxLife * Math.PI)})`;
-    ctx.shadowBlur = 8; ctx.shadowColor = `rgba(${this.color},0.5)`;
-    ctx.fill();
-    ctx.restore();
-  }
 }
-for (let i = 0; i < 120; i++) particles.push(new Particle());
 
-let t = 0;
-function drawBg() {
-  ctx.clearRect(0, 0, W, H);
-  t += 0.003;
+// ══ OVERLAY HELPERS ══
+function closeOverlay(id) {
+  document.getElementById(id).classList.remove('active');
+}
+function closeAll() {
+  ['overlay-match','overlay-cart','overlay-payment','overlay-confirm'].forEach(closeOverlay);
+}
+function showHome() {
+  closeAll();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
-  // Aurora bands
-  const auroras = [
-    { y: H * 0.15, color1: 'rgba(255,45,120,0.025)', color2: 'transparent', h: H * 0.35 },
-    { y: H * 0.5, color1: 'rgba(184,71,255,0.02)', color2: 'transparent', h: H * 0.4 },
-    { y: H * 0.7, color1: 'rgba(0,212,255,0.015)', color2: 'transparent', h: H * 0.3 },
-  ];
-  auroras.forEach((a, i) => {
-    const yOff = Math.sin(t + i * 1.3) * 30;
-    const grd = ctx.createLinearGradient(0, a.y + yOff, 0, a.y + a.h + yOff);
-    grd.addColorStop(0, a.color1);
-    grd.addColorStop(0.5, a.color1);
-    grd.addColorStop(1, a.color2);
-    ctx.fillStyle = grd;
-    ctx.fillRect(0, a.y + yOff, W, a.h);
+// ══ MAP ══
+function initMap() {
+  const map = L.map('stade-map', { 
+    center: [38, -96], 
+    zoom: 4,
+    zoomControl: true,
+  });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© CartoDB',
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(map);
+
+  const goldIcon = L.divIcon({
+    className: '',
+    html: '<div style="width:12px;height:12px;background:#C9A84C;border:2px solid #E8C96A;border-radius:50%;box-shadow:0 0 12px rgba(201,168,76,0.6)"></div>',
+    iconAnchor: [6,6]
   });
 
-  particles.forEach(p => { p.update(); p.draw(); });
-  requestAnimationFrame(drawBg);
-}
-drawBg();
-
-// ─── SCROLL REVEAL ───
-const reveals = document.querySelectorAll('.reveal, .product-card, .collection-card');
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting) { e.target.classList.add('visible'); }
-  });
-}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-reveals.forEach(r => observer.observe(r));
-
-// ─── COUNTER ANIMATION ───
-function animateCounter(el, target, duration = 2000) {
-  let start = null;
-  const step = (ts) => {
-    if (!start) start = ts;
-    const p = Math.min((ts - start) / duration, 1);
-    const ease = 1 - Math.pow(1 - p, 3);
-    const val = Math.floor(ease * target);
-    el.textContent = val.toLocaleString('fr-FR');
-    if (p < 1) requestAnimationFrame(step);
-    else el.textContent = target.toLocaleString('fr-FR');
-  };
-  requestAnimationFrame(step);
-}
-const statsObs = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      document.querySelectorAll('[data-target]').forEach(el => {
-        animateCounter(el, parseInt(el.dataset.target));
+  STADES.forEach(s => {
+    L.marker([s.lat, s.lng], { icon: goldIcon })
+      .addTo(map)
+      .bindPopup(`
+        <div style="background:#111;color:#F5F0E8;padding:12px;min-width:180px;font-family:Barlow,sans-serif">
+          <div style="color:#C9A84C;font-weight:700;font-size:14px;margin-bottom:6px">${s.name}</div>
+          <div style="font-size:12px;color:#888;margin-bottom:4px">📍 ${s.ville}, ${s.country}</div>
+          <div style="font-size:12px">Capacité : <strong>${s.capacity}</strong></div>
+        </div>
+      `, { 
+        className: 'dark-popup',
+        maxWidth: 220 
       });
-      statsObs.disconnect();
-    }
   });
-}, { threshold: 0.5 });
-const statsEl = document.querySelector('.stats-strip');
-if (statsEl) statsObs.observe(statsEl);
-
-// ─── CARD TILT ───
-document.querySelectorAll('.product-card').forEach(card => {
-  card.addEventListener('mousemove', e => {
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    const tiltX = (y / rect.height) * 8;
-    const tiltY = -(x / rect.width) * 8;
-    card.style.transform = `translateY(-10px) scale(1.01) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
-  });
-  card.addEventListener('mouseleave', () => {
-    card.style.transform = '';
-  });
-});
-
-// ─── ADD TO CART ───
-function addToCart(btn) {
-  btn.textContent = '✓ Ajouté !';
-  btn.style.background = 'linear-gradient(135deg, #00c48c, #00a87a)';
-  setTimeout(() => {
-    btn.textContent = '+ Ajouter';
-    btn.style.background = '';
-  }, 2000);
-  showToast();
-}
-function showToast() {
-  const toast = document.getElementById('toast');
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 3200);
 }
 
-// ─── FORM ───
-function handleFormSubmit(e) {
-  e.preventDefault();
-  const btn = e.target;
-  btn.textContent = '✓ Message envoyé !';
-  btn.style.background = 'linear-gradient(135deg, #00c48c, #00a87a)';
-  setTimeout(() => {
-    btn.textContent = 'Envoyer le Message →';
-    btn.style.background = '';
-  }, 3000);
-}
-
-// ─── PARALLAX ───
-window.addEventListener('scroll', () => {
-  const sy = window.scrollY;
-  const orb1 = document.querySelector('.orb-1');
-  const orb2 = document.querySelector('.orb-2');
-  const grid = document.querySelector('.hero-bg-grid');
-  if (orb1) orb1.style.transform = `translate(${sy * 0.08}px, ${sy * 0.12}px)`;
-  if (orb2) orb2.style.transform = `translate(${-sy * 0.06}px, ${sy * -0.08}px)`;
-  if (grid) grid.style.transform = `translateY(${sy * 0.4}px)`;
+// ── INIT ──
+renderMatches();
+window.addEventListener('load', initMap);
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', function(e) {
+    if (e.target === this) closeOverlay(this.id);
+  });
 });
 </script>
+<style>
+.leaflet-popup-content-wrapper { background: #111 !important; border: 1px solid rgba(201,168,76,0.3) !important; box-shadow: 0 8px 32px rgba(0,0,0,0.8) !important; }
+.leaflet-popup-tip { background: #111 !important; }
+.leaflet-popup-content { margin: 0 !important; }
+</style>
 </body>
 </html>
