@@ -137,14 +137,48 @@ function downloadGPX(a){if(!a.track){toast('Cette ascension n’a pas de trace G
 const simplify=(pts,n=600)=>pts.length<=n?pts:pts.filter((_,i)=>i%Math.ceil(pts.length/n)===0||i===pts.length-1);
 
 /* ============ Photos ============ */
-function readPhoto(file){return new Promise((res,rej)=>{
+function readExifGPS(buf){ // lecture EXIF minimale : GPS + date de prise de vue
+ try{const v=new DataView(buf);if(v.getUint16(0)!==0xFFD8)return null;let off=2;
+ while(off<v.byteLength-4){
+  if(v.getUint8(off)!==0xFF)break;const marker=v.getUint8(off+1);
+  if(marker===0xE1){const start=off+4;if(v.getUint32(start)!==0x45786966)return null;
+   const tiff=start+6,little=v.getUint16(tiff)===0x4949,g16=o=>v.getUint16(o,little),g32=o=>v.getUint32(o,little),gs32=o=>v.getInt32(o,little);
+   const ifd0=tiff+g32(tiff+4),entries=g16(ifd0);let gpsOff=null,dateStr=null;
+   for(let i=0;i<entries;i++){const e=ifd0+2+i*12,tag=g16(e);
+    if(tag===0x8825)gpsOff=tiff+g32(e+8);
+    if(tag===0x0132){const cnt=g32(e+4);let vo=cnt>4?tiff+g32(e+8):e+8,s='';for(let k=0;k<cnt-1;k++)s+=String.fromCharCode(v.getUint8(vo+k));dateStr=s}}
+   let lat=null,lon=null,alt=null;
+   if(gpsOff){const gn=g16(gpsOff),rat=o=>{const n=gs32(o),d=gs32(o+4);return d?n/d:0};let latRef='N',lonRef='E',la=null,lo=null;
+    for(let i=0;i<gn;i++){const e=gpsOff+2+i*12,tag=g16(e);
+     if(tag===1)latRef=String.fromCharCode(v.getUint8(e+8));if(tag===3)lonRef=String.fromCharCode(v.getUint8(e+8));
+     if(tag===2){const o=tiff+g32(e+8);la=rat(o)+rat(o+8)/60+rat(o+16)/3600}
+     if(tag===4){const o=tiff+g32(e+8);lo=rat(o)+rat(o+8)/60+rat(o+16)/3600}
+     if(tag===6){const o=tiff+g32(e+8);alt=rat(o)}}
+    if(la!=null)lat=latRef==='S'?-la:la;if(lo!=null)lon=lonRef==='W'?-lo:lo}
+   return{lat,lon,alt,date:dateStr}}
+  if(marker===0xD8||(marker>=0xD0&&marker<=0xD9))off+=2;else off+=2+v.getUint16(off+2)}
+ return null}catch{return null}}
+function readPhoto(file){return new Promise(async(res,rej)=>{
  if(!/^image\/(jpeg|png|webp)$/.test(file.type))return rej(new Error(`${file.name} : format non supporté (JPEG, PNG, WebP).`));
  if(file.size>LIMITS.photo)return rej(new Error(`${file.name} : fichier trop volumineux (max 12 Mo).`));
+ let exif=null;if(file.type==='image/jpeg'){try{exif=readExifGPS(await file.slice(0,131072).arrayBuffer())}catch{}}
  const img=new Image(),u=URL.createObjectURL(file);
  img.onerror=()=>rej(new Error(`${file.name} : photo illisible.`));
  img.onload=()=>{const k=Math.min(1,1280/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=img.width*k;c.height=img.height*k;
-  c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);res({id:crypto.randomUUID(),name:file.name,src:c.toDataURL('image/jpeg',.82)})};
+  c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);
+  res({id:crypto.randomUUID(),name:file.name,src:c.toDataURL('image/jpeg',.82),lat:exif?.lat??null,lon:exif?.lon??null,ele:exif?.alt??null,date:exif?.date||null,manual:false})};
  img.src=u})}
+function photoDist(a,p){if(!a.track||p.lat==null||!a.cum)return null;let best=0,bd=Infinity;
+ a.track.forEach((q,i)=>{const d=hav(q,{lat:p.lat,lon:p.lon});if(d<bd){bd=d;best=i}});return a.cum[best]}
+function openPositionModal(track,current,onPick){
+ openOv(`<h3 style="margin-bottom:10px">Positionner la photo</h3><div class="map" id="pmap" style="height:320px"></div><p class="ro">Clique sur le tracé à l’endroit où la photo a été prise, puis valide.</p><button class="btn rust" id="pmok">Valider</button>`);
+ const m=makeMap($('#pmap'));if(!m)return;
+ const ll=simplify(track).map(p=>[p.lat,p.lon]);const pl=L.polyline(ll,{color:'#D9852E',weight:4}).addTo(m);m.fitBounds(pl.getBounds(),{padding:[20,20]});
+ let chosen=current&&current.lat!=null?current:null;
+ let mk=chosen?L.circleMarker([chosen.lat,chosen.lon],{radius:8,color:'#fff',fillColor:'#D9852E',fillOpacity:1}).addTo(m):null;
+ m.on('click',e=>{let best=null,bd=Infinity;track.forEach(p=>{const d=hav(p,{lat:e.latlng.lat,lon:e.latlng.lng});if(d<bd){bd=d;best=p}});
+  chosen=best;if(mk)mk.setLatLng([best.lat,best.lon]);else mk=L.circleMarker([best.lat,best.lon],{radius:8,color:'#fff',fillColor:'#D9852E',fillOpacity:1}).addTo(m)});
+ $('#pmok').onclick=()=>{if(!chosen)return toast('Clique d’abord sur le tracé.');onPick(chosen);closeOv()}}
 
 /* ============ Badges & stats ============ */
 const mine=l=>l.filter(a=>a.uid===ME.id||a.user===ME.name);
@@ -184,6 +218,12 @@ function makeMap(el){
 const drawTrack=(m,a)=>{const ll=simplify(a.track).map(p=>[p.lat,p.lon]);const pl=L.polyline(ll,{color:'#D9852E',weight:4}).addTo(m);
  L.circleMarker(ll[0],{radius:6,color:'#7FA3B5',fillOpacity:1}).addTo(m).bindTooltip('Départ');L.circleMarker(ll.at(-1),{radius:6,color:'#F5F2EA',fillOpacity:1}).addTo(m).bindTooltip('Arrivée');
  m.fitBounds(pl.getBounds(),{padding:[20,20]});return pl};
+function timelineHTML(a){
+ const total=a.cum?a.cum.at(-1):(a.dist||0)*1000;
+ const stops=[{label:'Départ',dist:0}];
+ (a.photos||[]).filter(p=>p.lat!=null).forEach(p=>{const d=photoDist(a,p);if(d!=null)stops.push({label:'Photo',dist:d,photo:p})});
+ stops.push({label:'Arrivée',dist:total});stops.sort((x,y)=>x.dist-y.dist);
+ return `<div class="tl">${stops.map(s=>`<div>${s.photo?`<img src="${s.photo.src}" alt="" style="width:34px;height:34px;object-fit:cover;border-radius:4px;vertical-align:middle;margin-right:8px">`:''}<b>${s.label}</b> — ${fmt(s.dist/1000,2)} km</div>`).join('')}</div>`}
 
 /* ============ Elevation profile ============ */
 function profile(el,a,m){
@@ -287,7 +327,7 @@ views.creer=async()=>{
  <div class="grid3"><div><label>Altitude max (m)</label><input type="number" id="alt"></div><div><label>Distance (km)</label><input type="number" step="0.1" id="dist"></div><div><label>D+ (m)</label><input type="number" id="dp"></div>
  <div><label>D- (m)</label><input type="number" id="dm"></div><div><label>Durée (min)</label><input type="number" id="du"></div><div><label>Difficulté</label><select id="df"><option>Facile</option><option>Moyen</option><option>Difficile</option><option>Expert</option></select></div></div>
  <label>Photos (galerie ou appareil photo)</label><input type="file" id="ph" accept="image/*" multiple><div class="pv" id="pv"></div>
- <p class="ro">Positionnement GPS des photos (EXIF / placement manuel sur la trace) : pas encore implémenté dans cette version.</p>
+ <p class="ro">📍 = position GPS détectée automatiquement (EXIF). Sans GPS, positionne la photo manuellement sur le tracé une fois le GPX importé.</p>
  <div class="acts"><button class="btn rust" id="go">Publier l’ascension</button></div></div>`;
  const er=m=>{$('#er').innerHTML=m?`<div class="err">${esc(m)}</div>`:''};
  $('#gpx').onchange=async e=>{const f=e.target.files[0];if(!f)return;er('');
@@ -296,9 +336,12 @@ views.creer=async()=>{
    $('#dist').value=s.dist.toFixed(1);$('#dp').value=s.dplus;$('#dm').value=s.dminus;if(s.max!=null)$('#alt').value=s.max;if(s.duration)$('#du').value=s.duration;
    $('#gs').textContent=`✓ ${pts.length} points · ${fmt(s.dist,2)} km · +${s.dplus} m / -${s.dminus} m`+(s.min!=null?` · ${s.min}–${s.max} m`:'')}
   catch(x){st.track=null;st.st=null;er('GPX invalide : '+x.message)}};
- const pv=()=>{$('#pv').innerHTML=st.photos.map((p,i)=>`<div><img src="${p.src}" alt="">${i===0?'<small style="position:absolute;bottom:2px;left:4px">★</small>':''}<button data-i="${i}">✕</button></div>`).join('')};
+ const pv=()=>{$('#pv').innerHTML=st.photos.map((p,i)=>`<div><img src="${p.src}" alt="">${i===0?'<small style="position:absolute;bottom:2px;left:4px">★</small>':''}${p.lat!=null?'<small style="position:absolute;top:2px;left:4px">📍</small>':''}<button data-i="${i}" data-act="del">✕</button></div>`).join('')
+  +(st.track?'<div style="width:100%;margin-top:8px">'+st.photos.map((p,i)=>p.lat==null?`<button class="btn sm" data-pos="${i}" style="margin:0 6px 6px 0">Positionner « ${esc(p.name.slice(0,16))} »</button>`:'').join('')+'</div>':'')};
  $('#ph').onchange=async e=>{er('');for(const f of e.target.files){try{st.photos.push(await readPhoto(f))}catch(x){er(x.message)}}pv();e.target.value=''};
- $('#pv').onclick=e=>{const b=e.target.closest('button');if(b){st.photos.splice(+b.dataset.i,1);pv()}};
+ $('#pv').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.act==='del'){st.photos.splice(+b.dataset.i,1);pv();return}
+  if(b.dataset.pos!=null){const i=+b.dataset.pos;openPositionModal(st.track,st.photos[i],pt=>{st.photos[i].lat=pt.lat;st.photos[i].lon=pt.lon;st.photos[i].ele=pt.ele;st.photos[i].manual=true;pv()})}};
  $('#go').onclick=async()=>{const n=$('#n').value.trim();if(!n)return er('Le nom du sommet est obligatoire.');
   const s=st.st||{},num=id=>+$(id).value||0,h0=$('#h0').value;
   const a={id:crypto.randomUUID(),name:n,location:$('#loc').value.trim(),massif:$('#ma').value.trim(),type:$('#ty').value,region:$('#rg').value,date:$('#dt').value,description:$('#ds').value.trim(),
@@ -316,9 +359,13 @@ views.ascension=async id=>{
  <div class="acts"><button class="btn" id="lk">♥ ${a.likedBy.length+(a.likes||0)}${liked?' (aimé)':''}</button><button class="btn" id="sv">🔖 ${saved?'Enregistrée':'Enregistrer'}</button><button class="btn" id="sh">Partager</button><button class="btn" id="d3">Voir en 3D 🏔️</button><button class="btn" id="ex">Exporter GPX</button>${a.uid===ME.id?'<button class="btn" id="dl">Supprimer</button>':''}</div>
  <div class="sh"><h2>Tracé</h2></div>${a.track?'<div class="map" id="map"></div><div class="sh" style="margin-top:20px"><h3>Profil d’altitude</h3></div><div id="pf"></div>':'<div class="empty">Aucun parcours GPX pour cette ascension.</div>'}
  <div class="sh"><h2>Photos</h2></div>${a.photos?.length?`<div class="gal">${a.photos.map((p,i)=>`<img src="${p.src}" alt="" data-g="${i}">`).join('')}</div>`:'<div class="empty">Aucune photo.</div>'}
+ ${a.track?`<div class="sh"><h2>Chronologie</h2></div>${timelineHTML(a)}`:''}
  <div class="sh"><h2>Description</h2></div><p style="color:var(--fog);max-width:65ch">${esc(a.description)||'Pas de description.'}</p>
  <div class="sh"><h2>Commentaires (${a.comments.length})</h2></div><div id="cs"></div><div style="display:flex;gap:8px;margin-top:12px"><input id="ci" maxlength="300" placeholder="Écrire un commentaire…"><button class="btn rust" id="cp">Publier</button></div></div>`;
- if(a.track){const m=makeMap($('#map'));if(m){drawTrack(m,a);profile($('#pf'),a,m)}}
+ if(a.track){const m=makeMap($('#map'));if(m){drawTrack(m,a);profile($('#pf'),a,m);
+  (a.photos||[]).filter(p=>p.lat!=null).forEach(p=>{const d=photoDist(a,p);
+   const mk=L.marker([p.lat,p.lon],{icon:L.divIcon({html:`<div style="width:34px;height:34px;border-radius:50%;border:2px solid #D9852E;background:url('${p.src}') center/cover"></div>`,iconSize:[34,34]})}).addTo(m);
+   mk.bindPopup(`<b>${esc(p.name||'Photo')}</b>${p.ele!=null?'<br>'+fmt(p.ele)+' m':''}${d!=null?' · '+fmt(d/1000,2)+' km depuis le départ':''}`)})}}
  const cs=()=>$('#cs').innerHTML=a.comments.length?a.comments.map(c=>`<div class="cm"><span><b>${esc(c.user)}</b> <small>${esc(c.date)}</small><br>${esc(c.text)}</span>${c.uid===ME.id?`<button class="lk" data-c="${esc(c.id)}">Supprimer</button>`:''}</div>`).join(''):'<div class="empty">Aucun commentaire.</div>';cs();
  const persist=async()=>{await repo.save(a);L_all=await load()};
  $('#lk').onclick=async()=>{await toggle(a.id,'likedBy');L_all=await load();route()};
@@ -345,5 +392,3 @@ addEventListener('hashchange',route);route();
 </script>
 </body>
 </html>
-
-
