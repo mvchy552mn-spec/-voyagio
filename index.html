@@ -83,9 +83,6 @@ label{display:block;font-size:.78rem;color:var(--fog);margin:12px 0 4px}
 .prev-card{background:var(--ink-2);border:1px solid var(--line);border-radius:6px;padding:16px;margin-bottom:14px}
 .prev-card h3{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:1.05rem}
 .prev-card ul{margin:0;padding-left:18px;color:var(--fog);font-size:.9rem;line-height:1.65}
-.map3wrap{position:relative}
-.map3ctrl{position:absolute;top:10px;left:10px;z-index:5;display:flex;flex-direction:column;gap:6px}
-.map3ctrl .btn{background:rgba(24,31,28,.85);backdrop-filter:blur(4px);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -308,13 +305,10 @@ async function open3D(a){
   container:$('#m3'),
   style:{version:8,
    sources:{
-    sat:{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,attribution:'Imagerie © Esri, Maxar, Earthstar Geographics, GIS User Community'},
+    osm:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap'},
     terrain:{type:'raster-dem',tiles:['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],tileSize:256,encoding:'terrarium',maxzoom:15}
    },
-   layers:[
-    {id:'sat',type:'raster',source:'sat'},
-    {id:'sky',type:'sky',paint:{'sky-type':'atmosphere','sky-atmosphere-sun-intensity':8}}
-   ],
+   layers:[{id:'osm',type:'raster',source:'osm'}],
    terrain:{source:'terrain',exaggeration:1.4}
   },
   center:[start.lon,start.lat],zoom:12,pitch:65,bearing:0,maxPitch:85,antialias:true
@@ -447,7 +441,6 @@ function bindRouteSearch(inputSel,listSel){
 /* (voir plus haut) */
 
 /* ============ Views ============ */
-let carteMap=null; // instance de la carte 3D de la page "Carte" (MapLibre), distincte des cartes Leaflet des autres pages
 const views={};
 views.accueil=async()=>{const l=L_all,t=totals(mine(l));
  app.innerHTML=`<div class="section"><div style="color:var(--glacier)">Bonjour ${esc(ME.name.split(' ')[0])} 👋</div><h1 style="font-size:clamp(1.9rem,4vw,2.8rem);max-width:14ch;line-height:1.14;margin:8px 0 12px">Partagez vos sommets.</h1>
@@ -475,61 +468,14 @@ views.communaute=async()=>{const users=[...new Set(L_all.map(a=>a.user))];
  app.innerHTML=`<div class="section"><div class="sh"><h2>Communauté</h2><p>${users.length} randonneurs actifs</p></div>
  ${users.map(u=>{const t=totals(L_all.filter(a=>a.user===u));return`<div class="card" style="cursor:default;padding:14px;margin-bottom:10px"><b>${esc(u)}</b><div class="meta"><span>${t.n} ascensions</span><span>${fmt(t.dist,1)} km</span><span>+${fmt(t.dplus)} m</span><span>max ${fmt(t.alt)} m</span></div></div>`}).join('')}</div>`};
 views.carte=async()=>{
- app.innerHTML=`<div class="section"><div class="sh"><h2>La carte des ascensions</h2><p>Relief 3D réel — incline, tourne et zoome pour admirer les sommets</p></div>
- <div class="map3wrap"><div class="map" id="map3d" style="height:520px"></div>
-  <div class="map3ctrl">
-   <button class="btn sm" id="mLayer" type="button">🛰️ Satellite</button>
-   <button class="btn sm" id="mTerrain" type="button">🏔️ Relief 3D : ON</button>
-   <button class="btn sm" id="mFlat" type="button">↺ Vue du dessus</button>
-  </div></div>
- <p class="ro">Clic-gauche + glisser pour déplacer · clic-droit + glisser (ou deux doigts) pour incliner/tourner · molette pour zoomer. Fonds : satellite Esri (imagerie régulièrement mise à jour) ou plan OSM, avec un relief réel en 3D (données d’élévation ouvertes).</p></div>`;
- const el=$('#map3d');
- try{await loadMapLibre()}catch(x){el.innerHTML=`<div class="notice">${esc(x.message)}</div>`;return}
- if(carteMap){try{carteMap.remove()}catch{}carteMap=null}
- const withT=L_all.filter(a=>a.track);
- const m=new maplibregl.Map({
-  container:el,
-  style:{version:8,
-   sources:{
-    osm:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap'},
-    sat:{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,attribution:'Imagerie © Esri, Maxar, Earthstar Geographics, GIS User Community'},
-    terrain:{type:'raster-dem',tiles:['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],tileSize:256,encoding:'terrarium',maxzoom:15}
-   },
-   layers:[
-    {id:'base-sat',type:'raster',source:'sat'},
-    {id:'base-osm',type:'raster',source:'osm',layout:{visibility:'none'}},
-    {id:'sky',type:'sky',paint:{'sky-type':'atmosphere','sky-atmosphere-sun-intensity':8}}
-   ],
-   terrain:{source:'terrain',exaggeration:1.3}
-  },
-  center:[6.2,45.2],zoom:8,pitch:55,bearing:0,maxPitch:85,antialias:true
- });
- carteMap=m;
- m.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'top-right');
- let satOn=true,terrainOn=true;
- $('#mLayer').onclick=()=>{satOn=!satOn;m.setLayoutProperty('base-sat','visibility',satOn?'visible':'none');m.setLayoutProperty('base-osm','visibility',satOn?'none':'visible');$('#mLayer').textContent=satOn?'🛰️ Satellite':'🗺️ Plan'};
- $('#mTerrain').onclick=()=>{terrainOn=!terrainOn;m.setTerrain(terrainOn?{source:'terrain',exaggeration:1.3}:null);$('#mTerrain').textContent='🏔️ Relief 3D : '+(terrainOn?'ON':'OFF')};
- $('#mFlat').onclick=()=>{m.easeTo({pitch:0,bearing:0,duration:600})};
- m.on('error',e=>{if(!m._warned){m._warned=true;toast('Certaines tuiles n’ont pas pu se charger (réseau). La carte reste utilisable.')}});
- m.on('load',()=>{
-  if(!withT.length){$('.section').insertAdjacentHTML('beforeend','<div class="empty" style="margin-top:12px">Aucun parcours GPX publié. Importe un GPX pour voir ta trace ici. Les ascensions de démo n’ont pas de coordonnées (aucune coordonnée inventée).</div>');return}
-  const bounds=new maplibregl.LngLatBounds();
-  withT.forEach(a=>{
-   const coords=simplify(a.track,300).map(p=>[p.lon,p.lat]);coords.forEach(c=>bounds.extend(c));
-   m.addSource('trk-'+a.id,{type:'geojson',data:{type:'Feature',properties:{},geometry:{type:'LineString',coordinates:coords}}});
-   m.addLayer({id:'trk-'+a.id,type:'line',source:'trk-'+a.id,paint:{'line-color':'#D9852E','line-width':4}});
-   m.on('click','trk-'+a.id,()=>location.hash='#/ascension/'+a.id);
-   m.on('mouseenter','trk-'+a.id,()=>m.getCanvas().style.cursor='pointer');
-   m.on('mouseleave','trk-'+a.id,()=>m.getCanvas().style.cursor='');
-   (a.photos||[]).filter(p=>p.lat!=null).forEach(p=>{
-    const d=document.createElement('div');
-    d.style.cssText=`width:34px;height:34px;border-radius:50%;border:2px solid #D9852E;background-size:cover;background-position:center;cursor:pointer;background-image:url('${p.src}')`;
-    new maplibregl.Marker({element:d}).setLngLat([p.lon,p.lat]).setPopup(new maplibregl.Popup({offset:20}).setHTML(`<b>${esc(a.name)}</b><br>${esc(a.user)}`)).addTo(m);
-    d.onclick=()=>location.hash='#/ascension/'+a.id;
-   });
-  });
-  if(!bounds.isEmpty())m.fitBounds(bounds,{padding:60,pitch:55,duration:0});
- });};
+ app.innerHTML=`<div class="section"><div class="sh"><h2>La carte des ascensions</h2><p>Clique sur une trace pour ouvrir la fiche</p></div><div class="map" id="map" style="height:480px"></div>
+ <p class="ro">Fonds disponibles via le sélecteur de calques (en haut à droite de la carte) : OpenTopoMap (relief, courbes de niveau), OSM (plan) et Satellite Esri — sans clé requise. Pour le relief en 3D, ouvre une ascension puis « Voir en 3D ».</p></div>`;
+ const m=makeMap($('#map'));if(!m)return;const withT=L_all.filter(a=>a.track),grp=[];
+ withT.forEach(a=>{const pl=L.polyline(simplify(a.track,200).map(p=>[p.lat,p.lon]),{color:'#D9852E',weight:4}).addTo(m);grp.push(pl);
+  pl.bindTooltip(`${esc(a.name)} · ${fmt(a.dist,1)} km · ${esc(a.user)}`);pl.on('click',()=>location.hash='#/ascension/'+a.id);
+  (a.photos||[]).filter(p=>p.lat!=null).forEach(p=>L.marker([p.lat,p.lon],{icon:L.divIcon({html:`<div style="width:34px;height:34px;border-radius:50%;border:2px solid #D9852E;background:url('${p.src}') center/cover"></div>`,iconSize:[34,34]})}).addTo(m))});
+ if(grp.length)m.fitBounds(L.featureGroup(grp).getBounds(),{padding:[30,30]});
+ else $('.section').insertAdjacentHTML('beforeend','<div class="empty" style="margin-top:12px">Aucun parcours GPX publié. Importe un GPX pour voir ta trace ici. Les ascensions de démo n’ont pas de coordonnées (aucune coordonnée inventée).</div>')};
 views.profil=async()=>{const l=mine(L_all),t=totals(l),tab=sessionStorage.tab||'a';
  const saved=L_all.filter(a=>a.savedBy.includes(ME.id));
  app.innerHTML=`<div class="section"><h2>${esc(ME.name)}</h2><div style="color:var(--fog)">${ME.handle} · Grenoble</div>${strip(t)}
@@ -692,9 +638,7 @@ views.ascension=async id=>{
 /* ============ Router ============ */
 const NAV=[['','Accueil'],['explorer','Explorer'],['communaute','Communauté'],['carte','Carte'],['prevention','Prévention'],['profil','Profil']];
 async function route(){
- if(mapInst){mapInst.remove();mapInst=null}
- if(carteMap){try{carteMap.remove()}catch{}carteMap=null}
- closeOv();
+ if(mapInst){mapInst.remove();mapInst=null}closeOv();
  if(activeWatch){navigator.geolocation.clearWatch(activeWatch);activeWatch=null;toast('Enregistrement GPS interrompu (page quittée).')}
  const parts=(location.hash.replace(/^#\/?/,'')||'').split('/');const v=parts[0]||'accueil';
  $('#links').innerHTML=NAV.map(([h,l])=>`<a href="#/${h}" class="${(parts[0]||'')===h?'on':''}">${l}</a>`).join('');
@@ -710,4 +654,3 @@ addEventListener('hashchange',route);route();
 </script>
 </body>
 </html>
-
