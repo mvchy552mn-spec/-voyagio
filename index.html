@@ -4,538 +4,346 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cîmes — Partagez vos sommets</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
-:root{
-  --ink:#181F1C; --ink-2:#212A25; --paper:#F5F2EA; --fog:#96A199;
-  --rust:#D9852E; --glacier:#7FA3B5; --green:#5C7A63;
-  --line:rgba(245,242,234,0.13);
-  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
-}
-*,*::before,*::after{box-sizing:inherit;}
-html{scroll-padding-top:env(safe-area-inset-top,0px);}
-body{margin:0;background:var(--ink);color:var(--paper);font-family:'Inter',sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:calc(72px + env(safe-area-inset-bottom,0px));}
-h1,h2,h3{font-family:'Fraunces',serif;margin:0;font-weight:500;}
-a{color:inherit;text-decoration:none;}
-button{font-family:inherit;}
-.wrap{max-width:1080px;margin:0 auto;padding:0 24px;}
-.view{display:none;}
-.view.active{display:block;animation:fade .25s ease;}
-@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-
-/* header */
-header{position:sticky;top:0;z-index:20;padding:calc(16px + env(safe-area-inset-top,0px)) 0 16px;background:rgba(24,31,28,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);}
-nav.wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;}
-.logo{display:flex;align-items:center;gap:9px;font-family:'Fraunces',serif;font-size:1.25rem;cursor:pointer;}
-.navlinks{display:flex;gap:26px;font-size:.92rem;color:var(--fog);}
-.navlinks button{background:none;border:none;color:inherit;font-size:inherit;cursor:pointer;padding:4px 0;}
-.navlinks button.active,.navlinks button:hover{color:var(--paper);}
-@media (max-width:800px){.navlinks{display:none;}}
-.head-actions{display:flex;align-items:center;gap:14px;}
-.icon-btn{position:relative;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--ink-2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--paper);}
-.dot{position:absolute;top:6px;right:7px;width:6px;height:6px;border-radius:50%;background:var(--rust);}
-.avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(160deg,#8FB4C4,#3E5A63);border:1px solid var(--line);cursor:pointer;}
-.pop{position:absolute;top:56px;right:24px;background:var(--ink-2);border:1px solid var(--line);border-radius:6px;min-width:220px;padding:8px;display:none;z-index:30;}
-.pop.open{display:block;}
-.pop a,.pop button{display:block;width:100%;text-align:left;padding:10px 12px;border-radius:4px;background:none;border:none;color:var(--fog);font-size:.9rem;cursor:pointer;}
-.pop a:hover,.pop button:hover{background:var(--ink);color:var(--paper);}
-.pop .notif{border-bottom:1px solid var(--line);}
-.pop .notif b{color:var(--paper);}
-
-.btn{display:inline-block;padding:11px 22px;border-radius:3px;font-size:.9rem;font-weight:500;cursor:pointer;border:none;text-align:center;}
-.btn-rust{background:var(--rust);color:var(--ink);}
-.btn-ghost{background:transparent;color:var(--paper);border:1px solid var(--line);}
-.btn-sm{padding:7px 14px;font-size:.82rem;}
-.locked{position:relative;}
-.locked::after{content:"🔒";margin-left:6px;font-size:.8em;}
-
-/* hero */
-.hero{padding:56px 0 36px;}
-.hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;}
-@media (max-width:800px){.hero-grid{grid-template-columns:1fr;}}
-.eyebrow{color:var(--glacier);font-size:.92rem;margin-bottom:12px;}
-.hero h1{font-size:clamp(1.9rem,4vw,2.8rem);line-height:1.14;max-width:15ch;}
-.hero p{color:var(--fog);max-width:42ch;margin:16px 0 24px;}
-.altitude-num{font-family:'Fraunces',serif;font-size:clamp(3.8rem,9vw,6rem);line-height:.9;text-align:right;}
-.altitude-num span{font-size:.32em;color:var(--glacier);font-family:'Inter',sans-serif;}
-@media (max-width:800px){.altitude-num{text-align:left;}}
-
-/* stats strip */
-.stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden;margin:8px 0 44px;}
-.stat-pill{background:var(--ink-2);padding:18px 16px;}
-.stat-pill b{display:block;font-family:'Fraunces',serif;font-size:1.5rem;}
-.stat-pill span{color:var(--fog);font-size:.78rem;}
-@media (max-width:700px){.stats-strip{grid-template-columns:repeat(2,1fr);}}
-
-.section{padding:44px 0;}
-.section-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:26px;flex-wrap:wrap;gap:8px;}
-.section-head h2{font-size:1.5rem;}
-.section-head p{color:var(--fog);margin:0;font-size:.92rem;}
-
-.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:26px;}
-.chip{padding:8px 15px;border:1px solid var(--line);border-radius:20px;font-size:.82rem;color:var(--fog);background:var(--ink-2);cursor:pointer;}
-.chip.active{color:var(--ink);background:var(--glacier);border-color:var(--glacier);}
-
-.feed{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
-@media (max-width:900px){.feed{grid-template-columns:1fr;}}
-.card{background:var(--ink-2);border:1px solid var(--line);border-radius:5px;overflow:hidden;cursor:pointer;transition:transform .15s ease;}
-.card:hover{transform:translateY(-3px);}
-.card-art{position:relative;aspect-ratio:4/3;}
-.card-art svg{width:100%;height:100%;display:block;}
-.badge-alt{position:absolute;top:12px;left:12px;background:rgba(24,31,28,.75);border:1px solid var(--line);border-radius:2px;padding:4px 10px;font-size:.8rem;font-family:'Fraunces',serif;}
-.card-body{padding:16px 18px 18px;}
-.card-body h3{font-size:1.08rem;margin-bottom:6px;}
-.meta{display:flex;gap:14px;color:var(--fog);font-size:.83rem;flex-wrap:wrap;}
-.meta b{color:var(--paper);font-weight:500;}
-.social{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:.82rem;color:var(--fog);}
-.like-btn{background:none;border:none;color:var(--fog);cursor:pointer;font-size:.85rem;}
-.like-btn.liked{color:var(--rust);}
-
-/* map */
-.map-wrap{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;}
-.map-wrap svg{width:100%;height:auto;display:block;}
-.map-controls{position:absolute;top:16px;right:16px;display:flex;flex-direction:column;background:var(--ink-2);border:1px solid var(--line);border-radius:4px;overflow:hidden;}
-.map-controls button{width:36px;height:36px;background:var(--ink-2);border:none;color:var(--paper);font-size:1.05rem;cursor:pointer;}
-.map-search{position:absolute;top:16px;left:16px;right:70px;max-width:280px;background:var(--ink-2);border:1px solid var(--line);border-radius:20px;padding:9px 15px;font-size:.83rem;color:var(--fog);}
-.pin-photo{transform-origin:center;transition:transform .15s ease;}
-.pin:hover .pin-photo{transform:scale(1.15);}
-
-/* ascension detail */
-.detail-cover{position:relative;border-radius:6px;overflow:hidden;aspect-ratio:16/7;margin-bottom:24px;}
-.detail-cover svg{width:100%;height:100%;display:block;}
-.detail-title{position:absolute;bottom:18px;left:24px;right:24px;}
-.detail-title h2{font-size:clamp(1.5rem,3.5vw,2.2rem);}
-.stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-bottom:36px;}
-@media (max-width:700px){.stat-row{grid-template-columns:repeat(2,1fr);}}
-.gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:20px 0 36px;}
-@media (max-width:700px){.gallery{grid-template-columns:repeat(2,1fr);}}
-.gallery svg{width:100%;aspect-ratio:1;border-radius:4px;display:block;}
-.desc{color:var(--fog);max-width:65ch;margin-bottom:36px;}
-.detail-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px;}
-
-/* profil */
-.profile-head{display:flex;gap:20px;align-items:center;margin-bottom:8px;flex-wrap:wrap;}
-.avatar-lg{width:84px;height:84px;border-radius:50%;background:linear-gradient(160deg,#8FB4C4,#3E5A63);border:1px solid var(--line);flex-shrink:0;}
-.tabs{display:flex;gap:24px;border-bottom:1px solid var(--line);margin:32px 0 24px;}
-.tabs button{background:none;border:none;color:var(--fog);padding:10px 0;cursor:pointer;font-size:.92rem;border-bottom:2px solid transparent;}
-.tabs button.active{color:var(--paper);border-color:var(--rust);}
-.tabpane{display:none;}
-.tabpane.active{display:block;}
-.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:14px;}
-.badge{background:var(--ink-2);border:1px solid var(--line);border-radius:6px;padding:16px 10px;text-align:center;font-size:.78rem;color:var(--fog);}
-.badge.unlocked{color:var(--paper);border-color:var(--rust);}
-.badge .emoji{font-size:1.6rem;display:block;margin-bottom:6px;}
-.badge.locked .emoji{filter:grayscale(1);opacity:.35;}
-
-/* premium */
-.pricing{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-@media (max-width:700px){.pricing{grid-template-columns:1fr;}}
-.price-card{border:1px solid var(--line);border-radius:5px;padding:26px;background:var(--ink-2);position:relative;}
-.price-card.highlight{border-color:var(--rust);}
-.price-tag{position:absolute;top:-12px;right:22px;background:var(--rust);color:var(--ink);font-size:.74rem;padding:4px 10px;border-radius:2px;}
-.price-amount{font-family:'Fraunces',serif;font-size:2rem;margin:12px 0;}
-.price-amount span{font-size:.5em;color:var(--fog);font-family:'Inter',sans-serif;}
-.price-list{list-style:none;padding:0;margin:18px 0;color:var(--fog);font-size:.88rem;}
-.price-list li{padding:7px 0;border-top:1px solid var(--line);}
-.price-list li:first-child{border-top:none;}
-.price-card .btn{width:100%;margin-top:4px;}
-
-/* modal */
-.overlay{position:fixed;inset:0;background:rgba(15,18,16,.7);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
-.overlay.open{display:flex;}
-.modal{background:var(--ink-2);border:1px solid var(--line);border-radius:8px;padding:32px;max-width:380px;width:100%;text-align:center;}
-.modal .close{float:right;background:none;border:none;color:var(--fog);cursor:pointer;font-size:1.1rem;}
-.modal ul{text-align:left;color:var(--fog);font-size:.88rem;margin:18px 0;padding-left:18px;}
-
-.modal-3d{max-width:640px;text-align:left;padding:20px;}
-.canvas3d-wrap{position:relative;width:100%;aspect-ratio:4/3;border-radius:6px;overflow:hidden;background:#0F1512;cursor:grab;}
-.canvas3d-wrap:active{cursor:grabbing;}
-.canvas3d-wrap canvas{display:block;width:100%;height:100%;}
-.modal-3d .caption{color:var(--fog);font-size:.82rem;margin-top:12px;}
-.modal-3d h3{margin-bottom:14px;}
-
-footer{border-top:1px solid var(--line);padding:44px 0 40px;}
-.foot-bottom{display:flex;justify-content:space-between;color:var(--fog);font-size:.83rem;flex-wrap:wrap;gap:8px;}
-
-/* bottom nav */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:20;display:none;background:rgba(24,31,28,.95);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:10px 8px calc(10px + env(safe-area-inset-bottom,0px));}
-.bottom-nav ul{display:flex;justify-content:space-around;list-style:none;margin:0;padding:0;}
-.bottom-nav button{background:none;border:none;color:var(--fog);font-size:.68rem;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;}
-.bottom-nav button.active{color:var(--paper);}
-.bottom-nav .plus{width:44px;height:44px;background:var(--rust);border-radius:50%;color:var(--ink);font-size:1.3rem;justify-content:center;margin-top:-18px;}
-@media (max-width:800px){.bottom-nav{display:block;}}
+:root{--ink:#181F1C;--ink-2:#212A25;--paper:#F5F2EA;--fog:#96A199;--rust:#D9852E;--glacier:#7FA3B5;--green:#5C7A63;--line:rgba(245,242,234,.13)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--paper);font-family:Inter,sans-serif;line-height:1.5;padding:env(safe-area-inset-top) 0 calc(76px + env(safe-area-inset-bottom))}
+h1,h2,h3{font-family:Fraunces,serif;font-weight:500;margin:0}
+a{color:inherit;text-decoration:none}button,input,select,textarea{font-family:inherit}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+header{position:sticky;top:0;z-index:2000;background:rgba(24,31,28,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:14px 0}
+nav{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.logo{font-family:Fraunces,serif;font-size:1.25rem;color:var(--paper)}.logo b{color:var(--rust)}
+.links{display:flex;gap:22px;font-size:.92rem;color:var(--fog)}.links a.on,.links a:hover{color:var(--paper)}
+@media(max-width:800px){.links{display:none}}
+.btn{display:inline-block;padding:10px 20px;border-radius:3px;font-size:.9rem;font-weight:500;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--paper)}
+.btn.rust{background:var(--rust);color:var(--ink);border-color:var(--rust)}.btn.sm{padding:6px 12px;font-size:.8rem}
+.section{padding:34px 0;animation:fade .25s ease}@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.sh{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:20px}.sh p{color:var(--fog);margin:0;font-size:.9rem}
+.feed{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}@media(max-width:900px){.feed{grid-template-columns:1fr}}
+.card{background:var(--ink-2);border:1px solid var(--line);border-radius:5px;overflow:hidden;cursor:pointer;transition:transform .15s}.card:hover{transform:translateY(-3px)}
+.art{position:relative;aspect-ratio:4/3;background-size:cover;background-position:center}
+.art .ba{position:absolute;top:10px;left:10px;background:rgba(24,31,28,.75);border:1px solid var(--line);padding:3px 9px;font-family:Fraunces,serif;font-size:.8rem}
+.art .demo{position:absolute;top:10px;right:10px;background:var(--glacier);color:var(--ink);font-size:.68rem;padding:2px 7px;border-radius:2px}
+.cb{padding:14px 16px}.cb h3{font-size:1.05rem;margin-bottom:4px}
+.meta{display:flex;gap:12px;color:var(--fog);font-size:.82rem;flex-wrap:wrap}.meta b{color:var(--paper);font-weight:500}
+.soc{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:.8rem;color:var(--fog)}
+.lk{background:none;border:none;color:var(--fog);cursor:pointer;font-size:.85rem}.lk.on{color:var(--rust)}
+.strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden;margin:16px 0 28px}
+.strip.five{grid-template-columns:repeat(5,1fr)}@media(max-width:700px){.strip,.strip.five{grid-template-columns:repeat(2,1fr)}}
+.sp{background:var(--ink-2);padding:14px}.sp b{display:block;font-family:Fraunces,serif;font-size:1.35rem}.sp span{color:var(--fog);font-size:.76rem}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.chip{padding:7px 14px;border:1px solid var(--line);border-radius:20px;font-size:.8rem;color:var(--fog);background:var(--ink-2);cursor:pointer}.chip.on{background:var(--glacier);color:var(--ink);border-color:var(--glacier)}
+input,select,textarea{width:100%;background:var(--ink-2);color:var(--paper);border:1px solid var(--line);border-radius:4px;padding:10px 12px;font-size:.92rem}
+label{display:block;font-size:.78rem;color:var(--fog);margin:12px 0 4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:600px){.grid3{grid-template-columns:1fr 1fr}}
+.map{height:380px;border:1px solid var(--line);border-radius:6px;background:var(--ink-2)}
+.notice{background:var(--ink-2);border:1px dashed var(--rust);border-radius:6px;padding:14px;color:var(--fog);font-size:.88rem}
+.err{background:rgba(217,133,46,.15);border:1px solid var(--rust);border-radius:4px;padding:10px 12px;margin:10px 0;font-size:.88rem}
+.empty{text-align:center;color:var(--fog);padding:40px 10px;border:1px dashed var(--line);border-radius:6px}
+.gal{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}@media(max-width:700px){.gal{grid-template-columns:repeat(2,1fr)}}
+.gal img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px;cursor:pointer;display:block}
+.cover{position:relative;border-radius:6px;overflow:hidden;aspect-ratio:16/7;background:#33413A center/cover;margin-bottom:20px}
+.cover h2{position:absolute;bottom:16px;left:20px;right:20px;font-size:clamp(1.4rem,3.5vw,2.1rem);text-shadow:0 2px 12px #000}
+.cover::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 40%,rgba(15,18,16,.85))}.cover h2{z-index:1}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+.prof{width:100%;height:160px;background:var(--ink-2);border:1px solid var(--line);border-radius:6px;touch-action:none;display:block}
+.ro{color:var(--fog);font-size:.82rem;margin:6px 0 16px;min-height:1.4em}
+.cm{padding:10px 0;border-top:1px solid var(--line);font-size:.9rem;display:flex;justify-content:space-between;gap:10px}.cm small{color:var(--fog)}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px}
+.badge{background:var(--ink-2);border:1px solid var(--line);border-radius:6px;padding:14px 8px;text-align:center;font-size:.76rem;color:var(--fog)}.badge.on{color:var(--paper);border-color:var(--rust)}
+.badge i{font-style:normal;font-size:1.6rem;display:block}.badge:not(.on) i{filter:grayscale(1);opacity:.35}
+.tl{border-left:2px solid var(--rust);margin:14px 0 14px 8px;padding-left:16px;font-size:.88rem;color:var(--fog)}.tl div{margin:8px 0}.tl b{color:var(--paper)}
+.ov{position:fixed;inset:0;background:rgba(10,13,11,.92);display:none;align-items:center;justify-content:center;z-index:3000;padding:16px}.ov.on{display:flex}
+.ov img{max-width:100%;max-height:80vh;border-radius:4px}.ov .x{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px}
+.m3{width:min(640px,100%);aspect-ratio:4/3;background:#0F1512;border-radius:6px;cursor:grab;touch-action:none}
+.bn{position:fixed;bottom:0;left:0;right:0;z-index:2000;display:none;background:rgba(24,31,28,.96);border-top:1px solid var(--line);padding:8px 6px calc(8px + env(safe-area-inset-bottom))}
+.bn div{display:flex;justify-content:space-around}.bn a{color:var(--fog);font-size:.68rem;text-align:center}.bn a.on{color:var(--paper)}
+.bn a.plus{background:var(--rust);color:var(--ink);width:44px;height:44px;border-radius:50%;font-size:1.4rem;line-height:44px;margin-top:-16px}
+@media(max-width:800px){.bn{display:block}}
+.pv{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.pv div{position:relative}.pv img{width:80px;height:80px;object-fit:cover;border-radius:4px}
+.pv button{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer}
 </style>
 </head>
 <body>
+<header><nav class="wrap"><a href="#/" class="logo">Cîmes<b>▲</b></a>
+<div class="links" id="links"></div>
+<a href="#/creer" class="btn rust sm">+ Créer une ascension</a></nav></header>
+<main class="wrap" id="app"></main>
+<div class="bn"><div><a href="#/">🏠<br>Accueil</a><a href="#/explorer">🧭<br>Explorer</a><a href="#/creer" class="plus">+</a><a href="#/carte">🗺️<br>Carte</a><a href="#/profil">👤<br>Profil</a></div></div>
+<div class="ov" id="ov"><button class="btn sm x" id="ovx">✕</button><div id="ovc"></div></div>
 
-<header>
-  <nav class="wrap">
-    <div class="logo" data-nav="accueil">
-      <svg width="24" height="24" viewBox="0 0 26 26"><path d="M2 20L9 8l4 6 2-3 9 9H2z" fill="none" stroke="#D9852E" stroke-width="1.6" stroke-linejoin="round"/><circle cx="9" cy="8" r="1.3" fill="#7FA3B5"/></svg>
-      Cîmes
-    </div>
-    <div class="navlinks">
-      <button data-nav="accueil">Accueil</button>
-      <button data-nav="explorer">Explorer</button>
-      <button data-nav="carte">Carte</button>
-      <button data-nav="profil">Communauté</button>
-      <button data-nav="profil">Profil</button>
-    </div>
-    <div class="head-actions">
-      <div style="position:relative;">
-        <button class="icon-btn" onclick="togglePop('notif')" aria-label="Notifications">🔔<span class="dot"></span></button>
-        <div class="pop" id="pop-notif">
-          <div class="notif" style="padding:10px 12px;"><b>Thomas</b> a aimé votre ascension.</div>
-          <div class="notif" style="padding:10px 12px;"><b>Sarah</b> a commenté votre sortie.</div>
-          <div style="padding:10px 12px;">Badge débloqué — 🏔️ 10 sommets</div>
-        </div>
-      </div>
-      <div style="position:relative;">
-        <div class="avatar" onclick="togglePop('acc')"></div>
-        <div class="pop" id="pop-acc">
-          <button onclick="setView('profil');togglePop('acc')">Mon profil</button>
-          <button onclick="setView('premium');togglePop('acc')">Passer Premium</button>
-          <a href="#">Paramètres</a>
-          <a href="#">Déconnexion</a>
-        </div>
-      </div>
-    </div>
-  </nav>
-</header>
-
-<!-- ACCUEIL -->
-<section class="view active" id="view-accueil">
-  <div class="hero wrap">
-    <div class="hero-grid">
-      <div>
-        <div class="eyebrow">Bonjour Léa 👋</div>
-        <h1>Partagez vos sommets.</h1>
-        <p>Enregistrez vos ascensions, revivez vos parcours et découvrez ceux de la communauté Cîmes.</p>
-        <div style="display:flex;gap:12px;flex-wrap:wrap;">
-          <button class="btn btn-rust" onclick="alert('Formulaire de création d’ascension — à venir')">+ Créer une ascension</button>
-          <button class="btn btn-ghost" onclick="setView('explorer')">Explorer la communauté</button>
-        </div>
-      </div>
-      <div class="altitude-num">2 534<span>m</span></div>
-    </div>
-  </div>
-  <div class="wrap">
-    <div class="stats-strip">
-      <div class="stat-pill"><b>12</b><span>ascensions</span></div>
-      <div class="stat-pill"><b>187 km</b><span>distance</span></div>
-      <div class="stat-pill"><b>+9 240 m</b><span>D+ cumulé</span></div>
-      <div class="stat-pill"><b>2 534 m</b><span>altitude max</span></div>
-    </div>
-  </div>
-  <div class="section wrap">
-    <div class="section-head"><h2>Fil communautaire</h2><p>Les dernières ascensions publiées</p></div>
-    <div class="feed" id="feed-accueil"></div>
-  </div>
-</section>
-
-<!-- EXPLORER -->
-<section class="view" id="view-explorer">
-  <div class="section wrap">
-    <div class="section-head"><h2>Explorer</h2><p>Découvre les ascensions et sommets de la communauté</p></div>
-    <div class="filters">
-      <div class="chip active">Toutes</div><div class="chip">Randonnée</div><div class="chip">Trail</div>
-      <div class="chip">Alpinisme</div><div class="chip">Alpes</div><div class="chip">Pyrénées</div>
-    </div>
-    <div class="feed" id="feed-explorer"></div>
-  </div>
-</section>
-
-<!-- CARTE -->
-<section class="view" id="view-carte">
-  <div class="section wrap">
-    <div class="section-head"><h2>La carte des ascensions</h2><p>Chaque photo, épinglée à l'endroit exact du parcours</p></div>
-    <div class="map-wrap">
-      <svg viewBox="0 0 900 480" xmlns="http://www.w3.org/2000/svg">
-        <defs><linearGradient id="mapbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#33413A"/><stop offset="100%" stop-color="#1E2620"/></linearGradient>
-        <clipPath id="c1"><circle cx="180" cy="330" r="18"/></clipPath><clipPath id="c2"><circle cx="430" cy="220" r="18"/></clipPath><clipPath id="c3"><circle cx="640" cy="130" r="18"/></clipPath></defs>
-        <rect width="900" height="480" fill="url(#mapbg)"/>
-        <g stroke="#44534A" stroke-width="1" opacity=".6"><path d="M0,60 C200,20 300,90 450,50 S700,10 900,60" fill="none"/><path d="M0,150 C200,110 300,180 450,140 S700,100 900,150" fill="none"/><path d="M0,260 C200,220 300,290 450,250 S700,210 900,260" fill="none"/><path d="M0,370 C200,340 300,400 450,370 S700,330 900,380" fill="none"/></g>
-        <path d="M60,400 C120,380 150,340 180,330 C230,310 260,260 300,250 C360,235 400,250 430,220 C480,175 520,190 560,160 C600,135 610,140 640,130 C680,115 720,90 780,70" fill="none" stroke="#D9852E" stroke-width="3" stroke-dasharray="1 10" stroke-linecap="round"/>
-        <circle cx="60" cy="400" r="6" fill="#7FA3B5"/><polygon points="780,70 795,75 785,85" fill="#F5F2EA"/>
-        <g class="pin"><path d="M180,330 m0,-30 c11,0 20,9 20,20 c0,15 -20,32 -20,32 s-20,-17 -20,-32 c0,-11 9,-20 20,-20z" fill="#F5F2EA"/><circle class="pin-photo" cx="180" cy="320" r="15" clip-path="url(#c1)" fill="#8FB4C4"/><polygon points="165,330 180,308 195,330" clip-path="url(#c1)" fill="#3E5A63"/></g>
-        <g class="pin"><path d="M430,220 m0,-30 c11,0 20,9 20,20 c0,15 -20,32 -20,32 s-20,-17 -20,-32 c0,-11 9,-20 20,-20z" fill="#F5F2EA"/><circle class="pin-photo" cx="430" cy="210" r="15" clip-path="url(#c2)" fill="#D9C7A8"/><polygon points="415,220 430,198 445,220" clip-path="url(#c2)" fill="#A65A2E"/></g>
-        <g class="pin"><path d="M640,130 m0,-30 c11,0 20,9 20,20 c0,15 -20,32 -20,32 s-20,-17 -20,-32 c0,-11 9,-20 20,-20z" fill="#D9852E"/><circle class="pin-photo" cx="640" cy="120" r="15" clip-path="url(#c3)" fill="#C7714A"/><polygon points="625,130 640,105 655,130" clip-path="url(#c3)" fill="#F5F2EA"/></g>
-      </svg>
-      <div class="map-search">🔍 Chercher un sommet, un parcours…</div>
-      <div class="map-controls"><button aria-label="Zoomer">+</button><button aria-label="Dézoomer">–</button></div>
-    </div>
-  </div>
-</section>
-
-<!-- ASCENSION DETAIL -->
-<section class="view" id="view-ascension">
-  <div class="section wrap" id="ascension-content"></div>
-</section>
-
-<!-- PROFIL -->
-<section class="view" id="view-profil">
-  <div class="section wrap">
-    <div class="profile-head">
-      <div class="avatar-lg"></div>
-      <div>
-        <h2>Léa Fontaine</h2>
-        <div style="color:var(--fog);font-size:.9rem;">@lea.fontaine · Grenoble</div>
-      </div>
-    </div>
-    <div class="stats-strip">
-      <div class="stat-pill"><b>12</b><span>ascensions</span></div>
-      <div class="stat-pill"><b>187 km</b><span>distance</span></div>
-      <div class="stat-pill"><b>+9 240 m</b><span>D+ cumulé</span></div>
-      <div class="stat-pill"><b>2 534 m</b><span>altitude max</span></div>
-    </div>
-    <div class="tabs">
-      <button class="active" onclick="setTab('t-ascensions',this)">Ascensions</button>
-      <button onclick="setTab('t-badges',this)">Badges</button>
-      <button onclick="setTab('t-photos',this)">Photos</button>
-    </div>
-    <div class="tabpane active" id="t-ascensions"><div class="feed" id="feed-profil"></div></div>
-    <div class="tabpane" id="t-badges">
-      <div class="badge-grid">
-        <div class="badge unlocked"><span class="emoji">🥾</span>Première ascension</div>
-        <div class="badge unlocked"><span class="emoji">🔥</span>5 sorties</div>
-        <div class="badge unlocked"><span class="emoji">📸</span>Photo géolocalisée</div>
-        <div class="badge locked"><span class="emoji">🏔️</span>10 sommets</div>
-        <div class="badge locked"><span class="emoji">🗻</span>Premier 3 000 m</div>
-        <div class="badge locked"><span class="emoji">🏃</span>100 km</div>
-      </div>
-    </div>
-    <div class="tabpane" id="t-photos">
-      <p style="color:var(--fog);">Votre carnet de montagne est encore vide côté photos.</p>
-    </div>
-  </div>
-</section>
-
-<!-- PREMIUM -->
-<section class="view" id="view-premium">
-  <div class="section wrap">
-    <div style="text-align:center;max-width:520px;margin:0 auto 40px;">
-      <h1 style="font-size:clamp(1.8rem,4vw,2.6rem);">Allez plus loin avec Cîmes.</h1>
-      <p style="color:var(--fog);margin-top:14px;">Votre montagne. Vos traces. Vos souvenirs.</p>
-    </div>
-    <div class="pricing">
-      <div class="price-card">
-        <h3>Randonneur</h3><div class="price-amount">0 €<span>/mois</span></div>
-        <ul class="price-list"><li>Enregistrer tes ascensions</li><li>10 photos par sortie</li><li>Fil communautaire</li><li>Import GPX</li></ul>
-        <button class="btn btn-ghost">Compte actuel</button>
-      </div>
-      <div class="price-card highlight">
-        <div class="price-tag">Le plus choisi</div>
-        <h3>Alpiniste</h3><div class="price-amount">5,90 €<span>/mois</span></div>
-        <ul class="price-list"><li>Photos illimitées</li><li>Cartes hors-ligne</li><li>Export GPX &amp; Strava</li><li>Statistiques avancées par massif</li><li>Badge Premium sur le profil</li></ul>
-        <button class="btn btn-rust">Passer Alpiniste</button>
-      </div>
-    </div>
-  </div>
-</section>
-
-<footer>
-  <div class="wrap">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;">
-      <h2 style="font-size:1.4rem;max-width:16ch;">Ta prochaine ascension commence ici.</h2>
-      <button class="btn btn-rust" onclick="alert('Inscription — à venir')">Créer un compte gratuit</button>
-    </div>
-    <div class="foot-bottom" style="margin-top:36px;"><span>Cîmes — 2026</span><span>Fait par des randonneurs, pour des randonneurs</span></div>
-  </div>
-</footer>
-
-<nav class="bottom-nav">
-  <ul>
-    <li><button data-nav="accueil" class="active">🏠<br>Accueil</button></li>
-    <li><button data-nav="explorer">🧭<br>Explorer</button></li>
-    <li><button class="plus" onclick="alert('Formulaire de création d’ascension — à venir')">+</button></li>
-    <li><button data-nav="carte">🗺️<br>Carte</button></li>
-    <li><button data-nav="profil">👤<br>Profil</button></li>
-  </ul>
-</nav>
-
-<div class="overlay" id="view3d">
-  <div class="modal modal-3d">
-    <button class="close" onclick="close3D()">✕</button>
-    <h3 id="v3d-title">Vue 3D du sommet</h3>
-    <div class="canvas3d-wrap" id="canvas3d-wrap"></div>
-    <p class="caption">Relief stylisé généré à partir du profil de l'ascension — pas encore la topographie réelle du sommet (nécessiterait des données d'élévation type Mapbox Terrain ou IGN). Glisse pour faire pivoter.</p>
-  </div>
-</div>
-
-<div class="overlay" id="paywall">
-  <div class="modal">
-    <button class="close" onclick="closeModal()">✕</button>
-    <h3>Cîmes Premium</h3>
-    <p style="color:var(--fog);margin-top:10px;">Cette fonctionnalité est disponible avec Cîmes Premium.</p>
-    <ul><li>Export GPX &amp; Strava</li><li>Cartes hors-ligne</li><li>Statistiques avancées</li></ul>
-    <button class="btn btn-rust" style="width:100%;" onclick="closeModal();setView('premium')">Découvrir Premium</button>
-  </div>
-</div>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-const DATA=[
- {id:1,name:"Croix de Belledonne",alt:"1 900 m",km:"7,4 km",dplus:"+780 m",user:"Julien R.",date:"il y a 2 jours",likes:24,g:["#8FB4C4","#3E5A63"]},
- {id:2,name:"Pointe de la Grande Journée",alt:"2 534 m",km:"14,2 km",dplus:"+1 340 m",user:"Léa Fontaine",date:"aujourd'hui",likes:42,g:["#D9C7A8","#A65A2E"]},
- {id:3,name:"Roc du Vent",alt:"2 210 m",km:"11 km",dplus:"+980 m",user:"Amina T.",date:"il y a 4 jours",likes:17,g:["#B9C79A","#5C7A63"]},
- {id:4,name:"Aiguille de la Combe",alt:"2 890 m",km:"9,6 km",dplus:"+1 120 m",user:"Marc D.",date:"il y a 5 jours",likes:31,g:["#C7B7D9","#5B4E73"]},
-];
-function cardHTML(d){
- return `<div class="card" onclick="openAscension(${d.id})">
-  <div class="card-art"><svg viewBox="0 0 400 300"><defs><linearGradient id="g${d.id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${d.g[0]}"/><stop offset="100%" stop-color="${d.g[1]}"/></linearGradient></defs><rect width="400" height="300" fill="url(#g${d.id})"/><polygon points="0,220 90,110 160,200 230,80 320,190 400,140 400,300 0,300" fill="#232A22"/></svg><div class="badge-alt">${d.alt}</div></div>
-  <div class="card-body"><h3>${d.name}</h3><div class="meta"><span><b>${d.km}</b></span><span><b>${d.dplus}</b> D+</span></div>
-  <div class="social"><span>${d.user} · ${d.date}</span><button class="like-btn" onclick="event.stopPropagation();this.classList.toggle('liked')">♥ ${d.likes}</button></div></div></div>`;
+/* ============ Utils ============ */
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=(n,d=0)=>Number(n||0).toLocaleString('fr-FR',{maximumFractionDigits:d});
+const ME={id:'lea',name:'Léa Fontaine',handle:'@lea.fontaine'}; // remplaçable par un vrai compte (phase 2)
+const LIMITS={gpx:15*1024*1024,photo:12*1024*1024};
+
+/* ============ Data layer (repository — swappable for Supabase) ============ */
+const repo=(()=>{
+ let db;
+ const open=()=>db?Promise.resolve(db):new Promise((res,rej)=>{const r=indexedDB.open('cimes',1);
+  r.onupgradeneeded=()=>r.result.createObjectStore('asc',{keyPath:'id'});
+  r.onsuccess=()=>res(db=r.result);r.onerror=()=>rej(r.error)});
+ const tx=(m,f)=>open().then(d=>new Promise((res,rej)=>{const t=d.transaction('asc',m);const q=f(t.objectStore('asc'));t.oncomplete=()=>res(q.result);t.onerror=()=>rej(t.error)}));
+ return{all:()=>tx('readonly',s=>s.getAll()),get:id=>tx('readonly',s=>s.get(id)),save:a=>tx('readwrite',s=>s.put(a)),remove:id=>tx('readwrite',s=>s.delete(id))};
+})();
+const DEMO=[
+ {id:'d1',name:'Croix de Belledonne',alt:1900,dist:7.4,dplus:780,user:'Julien R.',massif:'Belledonne',region:'Alpes',type:'Randonnée',date:'2026-09-23',likes:24,g:['#8FB4C4','#3E5A63']},
+ {id:'d2',name:'Pointe de la Grande Journée',alt:2534,dist:14.2,dplus:1340,user:'Léa Fontaine',uid:'lea',massif:'Belledonne',region:'Alpes',type:'Trail',date:'2026-09-25',likes:42,g:['#D9C7A8','#A65A2E']},
+ {id:'d3',name:'Roc du Vent',alt:2210,dist:11,dplus:980,user:'Amina T.',massif:'Chartreuse',region:'Alpes',type:'Randonnée',date:'2026-09-21',likes:17,g:['#B9C79A','#5C7A63']},
+ {id:'d4',name:'Aiguille de la Combe',alt:2890,dist:9.6,dplus:1120,user:'Marc D.',massif:'Vanoise',region:'Alpes',type:'Alpinisme',date:'2026-09-20',likes:31,g:['#C7B7D9','#5B4E73']}
+].map(d=>({...d,demo:true,photos:[],comments:[],track:null,likedBy:[],savedBy:[],description:'Ascension de démonstration.'}));
+async function load(){let a=await repo.all();
+ if(!localStorage.cimesSeeded){for(const d of DEMO)await repo.save(d);localStorage.cimesSeeded='1';a=await repo.all()}
+ return a.sort((x,y)=>(y.date||'').localeCompare(x.date||''))}
+
+/* ============ Geo / GPX ============ */
+const R=6371000,rad=x=>x*Math.PI/180;
+const hav=(a,b)=>{const dl=rad(b.lat-a.lat),dn=rad(b.lon-a.lon);const h=Math.sin(dl/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h))};
+function computeStats(pts){
+ let dist=0,up=0,dn=0,min=Infinity,max=-Infinity,ref=null;const cum=[0];
+ pts.forEach((p,i)=>{if(i)cum.push(dist+=hav(pts[i-1],p));
+  if(p.ele!=null){min=Math.min(min,p.ele);max=Math.max(max,p.ele);
+   if(ref==null)ref=p.ele;const d=p.ele-ref;
+   if(d>=3){up+=d;ref=p.ele}else if(d<=-3){dn-=d;ref=p.ele}}}); // seuil 3 m anti-bruit GPS
+ const t0=pts.find(p=>p.t)?.t,t1=[...pts].reverse().find(p=>p.t)?.t;
+ return{dist:dist/1000,dplus:Math.round(up),dminus:Math.round(dn),min:isFinite(min)?Math.round(min):null,max:isFinite(max)?Math.round(max):null,
+  duration:t0&&t1?Math.round((t1-t0)/60000):null,cum,start:t0||null,startHour:t0?new Date(t0).getHours():null};
 }
-document.getElementById('feed-accueil').innerHTML=DATA.map(cardHTML).join('');
-document.getElementById('feed-explorer').innerHTML=DATA.slice().reverse().map(cardHTML).join('');
-document.getElementById('feed-profil').innerHTML=DATA.filter(d=>d.user==="Léa Fontaine").map(cardHTML).join('');
-
-function setView(v){
- document.querySelectorAll('.view').forEach(s=>s.classList.remove('active'));
- document.getElementById('view-'+v).classList.add('active');
- document.querySelectorAll('[data-nav]').forEach(b=>b.classList.toggle('active',b.dataset.nav===v));
- window.scrollTo({top:0,behavior:'smooth'});
- closePop();
+function parseGPX(text){
+ const x=new DOMParser().parseFromString(text,'application/xml');
+ if(x.querySelector('parsererror'))throw new Error('Fichier XML invalide.');
+ const nodes=[...x.getElementsByTagName('trkpt')];
+ if(nodes.length<2)throw new Error('Aucun point de trace (trkpt) trouvé dans ce GPX.');
+ const pts=nodes.map(n=>{const e=n.getElementsByTagName('ele')[0],t=n.getElementsByTagName('time')[0];
+  return{lat:+n.getAttribute('lat'),lon:+n.getAttribute('lon'),ele:e?+e.textContent:null,t:t?Date.parse(t.textContent):null}})
+  .filter(p=>isFinite(p.lat)&&isFinite(p.lon));
+ if(pts.length<2)throw new Error('Coordonnées GPS invalides.');
+ return pts;
 }
-document.querySelectorAll('[data-nav]').forEach(el=>el.addEventListener('click',()=>setView(el.dataset.nav)));
+const buildGPX=a=>{const pts=(a.track||[]).map(p=>`<trkpt lat="${p.lat}" lon="${p.lon}">${p.ele!=null?`<ele>${p.ele}</ele>`:''}${p.t?`<time>${new Date(p.t).toISOString()}</time>`:''}</trkpt>`).join('');
+ return`<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Cîmes" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>${esc(a.name)}</name><trkseg>${pts}</trkseg></trk></gpx>`};
+const slug=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+function downloadGPX(a){if(!a.track){toast('Cette ascension n’a pas de trace GPX à exporter.');return}
+ const u=URL.createObjectURL(new Blob([buildGPX(a)],{type:'application/gpx+xml'}));const l=document.createElement('a');l.href=u;l.download=`cimes-${slug(a.name)}.gpx`;l.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+const simplify=(pts,n=600)=>pts.length<=n?pts:pts.filter((_,i)=>i%Math.ceil(pts.length/n)===0||i===pts.length-1);
 
-function togglePop(id){
- const p=document.getElementById('pop-'+id);
- const isOpen=p.classList.contains('open');
- closePop();
- if(!isOpen)p.classList.add('open');
+/* ============ Photos ============ */
+function readPhoto(file){return new Promise((res,rej)=>{
+ if(!/^image\/(jpeg|png|webp)$/.test(file.type))return rej(new Error(`${file.name} : format non supporté (JPEG, PNG, WebP).`));
+ if(file.size>LIMITS.photo)return rej(new Error(`${file.name} : fichier trop volumineux (max 12 Mo).`));
+ const img=new Image(),u=URL.createObjectURL(file);
+ img.onerror=()=>rej(new Error(`${file.name} : photo illisible.`));
+ img.onload=()=>{const k=Math.min(1,1280/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=img.width*k;c.height=img.height*k;
+  c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);res({id:crypto.randomUUID(),name:file.name,src:c.toDataURL('image/jpeg',.82)})};
+ img.src=u})}
+
+/* ============ Badges & stats ============ */
+const mine=l=>l.filter(a=>a.uid===ME.id||a.user===ME.name);
+function totals(l){const t={n:l.length,dist:0,dplus:0,dminus:0,alt:0,time:0,photos:0,night:false};
+ l.forEach(a=>{t.dist+=a.dist||0;t.dplus+=a.dplus||0;t.dminus+=a.dminus||0;t.alt=Math.max(t.alt,a.alt||0);t.time+=a.duration||0;t.photos+=(a.photos||[]).length;
+  if(a.startHour!=null&&(a.startHour>=21||a.startHour<5))t.night=true});
+ t.peaks=new Set(l.map(a=>a.name.toLowerCase())).size;return t}
+const BADGES=[['🥾','Première ascension',t=>t.n>=1],['🔥','5 sorties',t=>t.n>=5],['🏔️','10 sommets',t=>t.peaks>=10],['🗻','Premier 3 000 m',t=>t.alt>=3000],['🗻','Premier 4 000 m',t=>t.alt>=4000],
+ ['🏃','100 km',t=>t.dist>=100],['⛰️','10 000 m D+',t=>t.dplus>=10000],['📸','Photo ajoutée',t=>t.photos>=1],['🌙','Sortie nocturne',t=>t.night]];
+
+/* ============ UI helpers ============ */
+const app=$('#app');let L_all=[],mapInst=null,cleanup=null;
+function toast(m){const d=document.createElement('div');d.className='err';d.style.cssText='position:fixed;bottom:90px;left:20px;right:20px;z-index:4000;max-width:420px;margin:auto';d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),3500)}
+const cover=a=>a.photos?.[0]?`background-image:url('${a.photos[0].src}')`:`background:linear-gradient(${a.g?.[0]||'#8FB4C4'},${a.g?.[1]||'#3E5A63'})`;
+function card(a){const liked=a.likedBy.includes(ME.id);
+ return`<div class="card" data-open="${esc(a.id)}"><div class="art" style="${cover(a)}"><div class="ba">${fmt(a.alt)} m</div>${a.demo?'<div class="demo">Démo</div>':''}</div>
+ <div class="cb"><h3>${esc(a.name)}</h3><div class="meta"><span><b>${fmt(a.dist,1)} km</b></span><span><b>+${fmt(a.dplus)} m</b> D+</span><span>${esc(a.type)}</span></div>
+ <div class="soc"><span>${esc(a.user)} · ${esc(a.date)}</span><button class="lk ${liked?'on':''}" data-like="${esc(a.id)}">♥ ${a.likedBy.length+(a.likes||0)}</button></div></div></div>`}
+const grid=(l,empty)=>l.length?`<div class="feed">${l.map(card).join('')}</div>`:`<div class="empty">${empty}</div>`;
+const strip=t=>`<div class="strip"><div class="sp"><b>${t.n}</b><span>ascensions</span></div><div class="sp"><b>${fmt(t.dist,1)} km</b><span>distance</span></div><div class="sp"><b>+${fmt(t.dplus)} m</b><span>D+ cumulé</span></div><div class="sp"><b>${fmt(t.alt)} m</b><span>altitude max</span></div></div>`;
+function bindCards(root){root.querySelectorAll('[data-open]').forEach(c=>c.onclick=()=>location.hash='#/ascension/'+c.dataset.open);
+ root.querySelectorAll('[data-like]').forEach(b=>b.onclick=async e=>{e.stopPropagation();await toggle(b.dataset.like,'likedBy');route()})}
+async function toggle(id,key){const a=await repo.get(id);const i=a[key].indexOf(ME.id);i<0?a[key].push(ME.id):a[key].splice(i,1);await repo.save(a)}
+const openOv=h=>{$('#ovc').innerHTML=h;$('#ov').classList.add('on')};
+const closeOv=()=>{$('#ov').classList.remove('on');$('#ovc').innerHTML='';stop3d()};$('#ovx').onclick=closeOv;
+
+/* ============ Map (Leaflet + OSM ; relief : configuration requise) ============ */
+const MAPBOX_TOKEN=window.MAPBOX_TOKEN||''; // à définir pour le terrain Mapbox
+function makeMap(el){
+ if(mapInst){mapInst.remove();mapInst=null}
+ if(!window.L){el.innerHTML='<div class="notice">Carte impossible à charger (Leaflet indisponible). Vérifie ta connexion.</div>';return null}
+ const m=L.map(el,{zoomControl:true}).setView([45.2,6.2],8);
+ const osm=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'});
+ const topo=L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:17,attribution:'© OpenTopoMap (CC-BY-SA)'});
+ topo.addTo(m);L.control.layers({'Relief / courbes (OpenTopoMap)':topo,'Plan (OSM)':osm}).addTo(m);
+ return mapInst=m}
+const drawTrack=(m,a)=>{const ll=simplify(a.track).map(p=>[p.lat,p.lon]);const pl=L.polyline(ll,{color:'#D9852E',weight:4}).addTo(m);
+ L.circleMarker(ll[0],{radius:6,color:'#7FA3B5',fillOpacity:1}).addTo(m).bindTooltip('Départ');L.circleMarker(ll.at(-1),{radius:6,color:'#F5F2EA',fillOpacity:1}).addTo(m).bindTooltip('Arrivée');
+ m.fitBounds(pl.getBounds(),{padding:[20,20]});return pl};
+
+/* ============ Elevation profile ============ */
+function profile(el,a,m){
+ const pts=a.track,cum=a.cum;if(!pts||!pts.some(p=>p.ele!=null)){el.innerHTML='<div class="empty">Pas de données d’altitude dans ce GPX.</div>';return}
+ const W=900,H=160,S=simplify(pts.map((p,i)=>({...p,d:cum[i]})),500).filter(p=>p.ele!=null);
+ const lo=Math.min(...S.map(p=>p.ele)),hi=Math.max(...S.map(p=>p.ele)),D=S.at(-1).d||1;
+ const X=d=>d/D*W,Y=e=>H-10-(e-lo)/((hi-lo)||1)*(H-30);
+ const line=S.map((p,i)=>`${i?'L':'M'}${X(p.d).toFixed(1)},${Y(p.ele).toFixed(1)}`).join('');
+ el.innerHTML=`<svg class="prof" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${line}L${W},${H}L0,${H}Z" fill="rgba(127,163,181,.2)"/><path d="${line}" fill="none" stroke="#7FA3B5" stroke-width="2" vector-effect="non-scaling-stroke"/><line id="cur" y1="0" y2="${H}" stroke="#D9852E" stroke-width="1.5" vector-effect="non-scaling-stroke" style="display:none"/></svg><div class="ro" id="ro">Glisse sur le graphique · ${fmt(lo)}–${fmt(hi)} m</div>`;
+ const svg=$('svg',el),cur=$('#cur',el),ro=$('#ro',el);let mk=null;
+ const move=e=>{const r=svg.getBoundingClientRect();const f=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));const d=f*D;
+  const p=S.reduce((b,q)=>Math.abs(q.d-d)<Math.abs(b.d-d)?q:b);cur.setAttribute('x1',X(p.d));cur.setAttribute('x2',X(p.d));cur.style.display='';
+  ro.textContent=`${fmt(p.ele)} m · ${fmt(p.d/1000,2)} km`;
+  if(m){if(!mk)mk=L.circleMarker([p.lat,p.lon],{radius:7,color:'#fff',fillColor:'#D9852E',fillOpacity:1}).addTo(m);else mk.setLatLng([p.lat,p.lon])}};
+ svg.addEventListener('pointermove',move);svg.addEventListener('pointerdown',move)}
+
+/* ============ 3D (trace en relief exagéré ; terrain réel : Configuration requise) ============ */
+let r3=null;
+function stop3d(){if(r3){cancelAnimationFrame(r3.raf);r3.ren.dispose();r3=null}}
+function open3D(a){
+ if(!a.track||!window.THREE||!(() =>{try{return !!document.createElement('canvas').getContext('webgl')}catch{return false}})()){toast('Vue 3D impossible : trace ou WebGL indisponible.');return}
+ openOv(`<h3 style="margin-bottom:10px">Vue 3D — ${esc(a.name)}</h3><div class="m3" id="m3"></div><p class="ro">Glisser pour tourner · pincer/molette pour zoomer. Trace GPS en relief (altitude exagérée). Le terrain réel nécessite MAPBOX_TOKEN ou un DEM : configuration requise.</p><button class="btn sm" id="rc">Recentrer</button>`);
+ const w=$('#m3'),S=simplify(a.track,400);const lat0=S[0].lat,lon0=S[0].lon,k=111320,e0=Math.min(...S.map(p=>p.ele??0));
+ const V=S.map(p=>new THREE.Vector3((p.lon-lon0)*k*Math.cos(rad(lat0)),((p.ele??e0)-e0)*1.5,-(p.lat-lat0)*k));
+ const box=new THREE.Box3().setFromPoints(V),c=box.getCenter(new THREE.Vector3()),sz=box.getSize(new THREE.Vector3()),ext=Math.max(sz.x,sz.y,sz.z,50);
+ V.forEach(v=>v.sub(c).multiplyScalar(10/ext));
+ const sc=new THREE.Scene();sc.background=new THREE.Color(0x0F1512);
+ const cam=new THREE.PerspectiveCamera(45,w.clientWidth/w.clientHeight,.1,100);
+ const ren=new THREE.WebGLRenderer({antialias:false});ren.setPixelRatio(Math.min(devicePixelRatio,1.5));ren.setSize(w.clientWidth,w.clientHeight);w.appendChild(ren.domElement);
+ const g=new THREE.Group();sc.add(g);g.add(new THREE.GridHelper(14,14,0x44534A,0x2A342E));
+ g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(V),new THREE.LineBasicMaterial({color:0xD9852E})));
+ const dot=(v,col)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(.15,10,10),new THREE.MeshBasicMaterial({color:col}));m.position.copy(v);g.add(m)};
+ dot(V[0],0x7FA3B5);dot(V.at(-1),0xF5F2EA);
+ let rx=.5,ry=0,dist=16,auto=true;const home=()=>{rx=.5;ry=0;dist=16;cam.position.set(0,0,dist)};home();
+ const upd=()=>{cam.position.set(0,dist*Math.sin(rx),dist*Math.cos(rx));cam.lookAt(0,0,0);g.rotation.y=ry};
+ const ptr=new Map();let pd=0;
+ w.onpointerdown=e=>{ptr.set(e.pointerId,e);auto=false};w.onpointerup=w.onpointercancel=e=>{ptr.delete(e.pointerId);pd=0};
+ w.onpointermove=e=>{if(!ptr.has(e.pointerId))return;const p=ptr.get(e.pointerId);
+  if(ptr.size===2){const o=[...ptr.values()].find(q=>q.pointerId!==e.pointerId);const d=Math.hypot(e.clientX-o.clientX,e.clientY-o.clientY);if(pd)dist=Math.max(5,Math.min(40,dist*pd/d));pd=d}
+  else{ry+=(e.clientX-p.clientX)*.01;rx=Math.max(.05,Math.min(1.5,rx+(e.clientY-p.clientY)*.01))}ptr.set(e.pointerId,e)};
+ w.onwheel=e=>{e.preventDefault();dist=Math.max(5,Math.min(40,dist+e.deltaY*.02))};
+ $('#rc').onclick=()=>{home();auto=true};
+ r3={ren,raf:0};(function loop(){r3.raf=requestAnimationFrame(loop);if(auto)ry+=.004;upd();ren.render(sc,cam)})();
 }
-function closePop(){document.querySelectorAll('.pop').forEach(p=>p.classList.remove('open'));}
-document.addEventListener('click',e=>{if(!e.target.closest('.head-actions'))closePop();});
 
-function setTab(id,btn){
- document.querySelectorAll('.tabpane').forEach(t=>t.classList.remove('active'));
- document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
- document.getElementById(id).classList.add('active'); btn.classList.add('active');
-}
+/* ============ Views ============ */
+const views={};
+views.accueil=async()=>{const l=L_all,t=totals(mine(l));
+ app.innerHTML=`<div class="section"><div style="color:var(--glacier)">Bonjour ${esc(ME.name.split(' ')[0])} 👋</div><h1 style="font-size:clamp(1.9rem,4vw,2.8rem);max-width:14ch;line-height:1.14;margin:8px 0 12px">Partagez vos sommets.</h1>
+ <p style="color:var(--fog);max-width:44ch">Enregistrez vos ascensions, revivez vos parcours et découvrez ceux de la communauté.</p>
+ <div class="acts"><a class="btn rust" href="#/creer">+ Créer une ascension</a><a class="btn" href="#/explorer">Explorer</a></div>${strip(t)}
+ <div class="sh"><h2>Fil communautaire</h2><p>Les dernières ascensions publiées</p></div>${grid(l,'Aucune ascension pour le moment.')}</div>`;bindCards(app)};
+views.explorer=async()=>{
+ const f={q:'',type:'',region:'',sort:'date',minAlt:0};const types=['Randonnée','Trail','Trek','Alpinisme','Escalade','Ski de randonnée'],regs=['Alpes','Pyrénées','Jura','Vosges','Massif central','Corse'];
+ app.innerHTML=`<div class="section"><div class="sh"><h2>Explorer</h2><p>Sommets, parcours, massifs, utilisateurs</p></div>
+ <input id="q" placeholder="🔍 Chercher un sommet, un massif, un utilisateur…"><div class="chips" style="margin-top:12px" id="ch"></div>
+ <div class="grid3" style="margin-bottom:16px"><div><label>Altitude min.</label><select id="alt"><option value="0">Toutes</option><option value="1500">1 500 m+</option><option value="2500">2 500 m+</option><option value="3000">3 000 m+</option></select></div>
+ <div><label>Trier par</label><select id="so"><option value="date">Date</option><option value="alt">Altitude</option><option value="dist">Distance</option><option value="dplus">D+</option></select></div></div><div id="res"></div></div>`;
+ const chips=()=>$('#ch').innerHTML=[...types.map(x=>['type',x]),...regs.map(x=>['region',x])].map(([k,v])=>`<span class="chip ${f[k]===v?'on':''}" data-k="${k}" data-v="${v}">${v}</span>`).join('');
+ const draw=()=>{const q=f.q.toLowerCase();let l=L_all.filter(a=>(!q||[a.name,a.massif,a.user,a.region].some(s=>(s||'').toLowerCase().includes(q)))&&(!f.type||a.type===f.type)&&(!f.region||a.region===f.region)&&a.alt>=f.minAlt);
+  l=l.sort((x,y)=>f.sort==='date'?(y.date||'').localeCompare(x.date||''):(y[f.sort]||0)-(x[f.sort]||0));$('#res').innerHTML=grid(l,'Aucun résultat pour ces critères.');bindCards($('#res'))};
+ $('#ch').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;f[c.dataset.k]=f[c.dataset.k]===c.dataset.v?'':c.dataset.v;chips();draw()};
+ $('#q').oninput=e=>{f.q=e.target.value;draw()};$('#alt').onchange=e=>{f.minAlt=+e.target.value;draw()};$('#so').onchange=e=>{f.sort=e.target.value;draw()};chips();draw()};
+views.communaute=async()=>{const users=[...new Set(L_all.map(a=>a.user))];
+ app.innerHTML=`<div class="section"><div class="sh"><h2>Communauté</h2><p>${users.length} randonneurs actifs</p></div>
+ ${users.map(u=>{const t=totals(L_all.filter(a=>a.user===u));return`<div class="card" style="cursor:default;padding:14px;margin-bottom:10px"><b>${esc(u)}</b><div class="meta"><span>${t.n} ascensions</span><span>${fmt(t.dist,1)} km</span><span>+${fmt(t.dplus)} m</span><span>max ${fmt(t.alt)} m</span></div></div>`}).join('')}</div>`};
+views.carte=async()=>{
+ app.innerHTML=`<div class="section"><div class="sh"><h2>La carte des ascensions</h2><p>Clique sur une trace pour ouvrir la fiche</p></div><div class="map" id="map"></div>
+ <p class="ro">Fonds : OpenTopoMap (relief, courbes de niveau) et OSM — sans clé. Le terrain 3D réel requiert MAPBOX_TOKEN.</p></div>`;
+ const m=makeMap($('#map'));if(!m)return;const withT=L_all.filter(a=>a.track),grp=[];
+ withT.forEach(a=>{const pl=L.polyline(simplify(a.track,200).map(p=>[p.lat,p.lon]),{color:'#D9852E',weight:4}).addTo(m);grp.push(pl);
+  pl.bindTooltip(`${esc(a.name)} · ${fmt(a.dist,1)} km · ${esc(a.user)}`);pl.on('click',()=>location.hash='#/ascension/'+a.id);
+  (a.photos||[]).filter(p=>p.lat!=null).forEach(p=>L.marker([p.lat,p.lon],{icon:L.divIcon({html:`<div style="width:34px;height:34px;border-radius:50%;border:2px solid #D9852E;background:url('${p.src}') center/cover"></div>`,iconSize:[34,34]})}).addTo(m))});
+ if(grp.length)m.fitBounds(L.featureGroup(grp).getBounds(),{padding:[30,30]});
+ else $('.section').insertAdjacentHTML('beforeend','<div class="empty" style="margin-top:12px">Aucun parcours GPX publié. Importe un GPX pour voir ta trace ici. Les ascensions de démo n’ont pas de coordonnées (aucune coordonnée inventée).</div>')};
+views.profil=async()=>{const l=mine(L_all),t=totals(l),tab=sessionStorage.tab||'a';
+ const saved=L_all.filter(a=>a.savedBy.includes(ME.id));
+ app.innerHTML=`<div class="section"><h2>${esc(ME.name)}</h2><div style="color:var(--fog)">${ME.handle} · Grenoble</div>${strip(t)}
+ <div class="chips" id="tb">${[['a','Ascensions'],['s','Enregistrées'],['b','Badges'],['p','Photos'],['h','Historique'],['st','Statistiques']].map(([k,v])=>`<span class="chip ${tab===k?'on':''}" data-t="${k}">${v}</span>`).join('')}</div><div id="tp"></div></div>`;
+ const months=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+ const panes={a:()=>grid(l,'Aucune ascension. <br><a class="btn rust sm" href="#/creer" style="margin-top:10px">Créer ma première ascension</a>'),
+  s:()=>grid(saved,'Aucune sortie enregistrée. Utilise 🔖 sur une fiche.'),
+  b:()=>`<div class="badges">${BADGES.map(([e,n,f])=>`<div class="badge ${f(t)?'on':''}"><i>${e}</i>${n}</div>`).join('')}</div>`,
+  p:()=>{const ph=l.flatMap(a=>(a.photos||[]).map(p=>({...p,aid:a.id})));return ph.length?`<div class="gal">${ph.map(p=>`<img src="${p.src}" alt="" data-open="${esc(p.aid)}">`).join('')}</div>`:'<div class="empty">Aucune photo publiée.</div>'},
+  h:()=>l.length?months.map((m,i)=>{const x=l.filter(a=>+(a.date||'').slice(5,7)===i+1);return x.length?`<h3 style="margin:16px 0 8px">${m}</h3>${x.map(a=>`<div class="cm"><a href="#/ascension/${esc(a.id)}">${esc(a.name)}</a><small>${esc(a.date)} · ${fmt(a.dist,1)} km</small></div>`).join('')}`:''}).join(''):'<div class="empty">Aucune sortie dans l’historique.</div>',
+  st:()=>`<div class="strip"><div class="sp"><b>${fmt(t.dminus)} m</b><span>D- total</span></div><div class="sp"><b>${t.peaks}</b><span>sommets</span></div><div class="sp"><b>${t.n?fmt(t.dist/t.n,1):0} km</b><span>distance moy.</span></div><div class="sp"><b>${t.n?fmt(t.dplus/t.n):0} m</b><span>D+ moyen</span></div><div class="sp"><b>${Math.floor(t.time/60)} h ${t.time%60}</b><span>temps total</span></div></div>`};
+ const show=k=>{sessionStorage.tab=k;$('#tp').innerHTML=panes[k]();bindCards($('#tp'));$('#tb').querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.t===k))};
+ $('#tb').onclick=e=>{const c=e.target.closest('.chip');if(c)show(c.dataset.t)};show(tab)};
+views.premium=async()=>{app.innerHTML=`<div class="section"><h1 style="text-align:center">Allez plus loin avec Cîmes.</h1><p style="text-align:center;color:var(--fog)">Page Premium conservée visuellement. Aucun paiement dans cette phase : toutes les fonctionnalités sont accessibles.</p></div>`};
 
-let currentAscension=null;
-function openAscension(id){
- const d=DATA.find(x=>x.id===id);
- currentAscension=d;
- document.getElementById('ascension-content').innerHTML=`
-  <div class="detail-cover"><svg viewBox="0 0 900 400"><defs><linearGradient id="dg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${d.g[0]}"/><stop offset="100%" stop-color="${d.g[1]}"/></linearGradient></defs><rect width="900" height="400" fill="url(#dg)"/><polygon points="0,300 200,150 320,260 460,90 620,240 900,180 900,400 0,400" fill="#20281F"/></svg>
-   <div class="detail-title"><h2>${d.name}</h2></div></div>
-  <div class="stat-row">
-   <div class="stat-pill"><b>${d.alt}</b><span>altitude</span></div>
-   <div class="stat-pill"><b>${d.km}</b><span>distance</span></div>
-   <div class="stat-pill"><b>${d.dplus}</b><span>D+</span></div>
-   <div class="stat-pill"><b>3h42</b><span>durée</span></div>
-   <div class="stat-pill"><b>${d.date}</b><span>date</span></div>
-  </div>
-  <div class="section-head"><h2>Tracé &amp; photos</h2></div>
-  <div class="map-wrap" style="margin-bottom:8px;"><svg viewBox="0 0 900 260"><rect width="900" height="260" fill="#232A22"/><path d="M40,220 C150,180 200,120 300,150 C420,190 500,60 650,90 C750,110 800,60 860,40" fill="none" stroke="#D9852E" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round"/></svg></div>
-  <div class="gallery">
-   <svg viewBox="0 0 100 100"><rect width="100" height="100" fill="${d.g[0]}"/></svg>
-   <svg viewBox="0 0 100 100"><rect width="100" height="100" fill="${d.g[1]}"/></svg>
-   <svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#5C7A63"/></svg>
-   <svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#7FA3B5"/></svg>
-  </div>
-  <div class="section-head"><h2>Description</h2></div>
-  <p class="desc">Une sortie magnifique avec un ciel dégagé sur toute la crête. Départ tôt pour profiter de la lumière du matin sur le sommet.</p>
-  <div class="detail-actions">
-   <button class="btn btn-ghost" onclick="alert('Parcours affiché sur la carte')">Voir le parcours</button>
-   <button class="btn btn-ghost" onclick="open3D()">Vue 3D 🏔️</button>
-   <button class="btn btn-ghost locked" onclick="openModal()">Exporter GPX</button>
-   <button class="like-btn" style="border:1px solid var(--line);border-radius:20px;padding:9px 16px;" onclick="this.classList.toggle('liked')">♥ ${d.likes} · 💬 8</button>
-  </div>`;
- setView('ascension');
-}
-function openModal(){document.getElementById('paywall').classList.add('open');}
-function closeModal(){document.getElementById('paywall').classList.remove('open');}
+views.creer=async()=>{
+ const st={track:null,st:null,photos:[]};
+ app.innerHTML=`<div class="section"><div class="sh"><h2>Créer une ascension</h2></div><div id="er"></div>
+ <label>Nom du sommet *</label><input id="n" maxlength="100"><div class="grid2"><div><label>Localisation</label><input id="loc" maxlength="100"></div><div><label>Massif</label><input id="ma" maxlength="80"></div></div>
+ <div class="grid3"><div><label>Type</label><select id="ty">${['Randonnée','Trail','Trek','Alpinisme','Escalade','Ski de randonnée','Autre'].map(x=>`<option>${x}</option>`).join('')}</select></div>
+ <div><label>Région</label><select id="rg">${['Alpes','Pyrénées','Jura','Vosges','Massif central','Corse','Autre'].map(x=>`<option>${x}</option>`).join('')}</select></div>
+ <div><label>Date</label><input type="date" id="dt" value="${new Date().toISOString().slice(0,10)}"></div></div>
+ <div class="grid2"><div><label>Heure de départ</label><input type="time" id="h0"></div><div><label>Heure d’arrivée</label><input type="time" id="h1"></div></div>
+ <label>Description</label><textarea id="ds" rows="3" maxlength="1000"></textarea>
+ <label>Parcours : importer un GPX</label><input type="file" id="gpx" accept=".gpx"><div id="gs" class="ro"></div>
+ <div class="grid3"><div><label>Altitude max (m)</label><input type="number" id="alt"></div><div><label>Distance (km)</label><input type="number" step="0.1" id="dist"></div><div><label>D+ (m)</label><input type="number" id="dp"></div>
+ <div><label>D- (m)</label><input type="number" id="dm"></div><div><label>Durée (min)</label><input type="number" id="du"></div><div><label>Difficulté</label><select id="df"><option>Facile</option><option>Moyen</option><option>Difficile</option><option>Expert</option></select></div></div>
+ <label>Photos (galerie ou appareil photo)</label><input type="file" id="ph" accept="image/*" multiple><div class="pv" id="pv"></div>
+ <p class="ro">Positionnement GPS des photos (EXIF / placement manuel sur la trace) : pas encore implémenté dans cette version.</p>
+ <div class="acts"><button class="btn rust" id="go">Publier l’ascension</button></div></div>`;
+ const er=m=>{$('#er').innerHTML=m?`<div class="err">${esc(m)}</div>`:''};
+ $('#gpx').onchange=async e=>{const f=e.target.files[0];if(!f)return;er('');
+  try{if(!/\.gpx$/i.test(f.name))throw new Error('Extension non supportée : .gpx attendu.');if(f.size>LIMITS.gpx)throw new Error('Fichier GPX trop volumineux (max 15 Mo).');
+   const pts=parseGPX(await f.text()),s=computeStats(pts);st.track=pts;st.st=s;
+   $('#dist').value=s.dist.toFixed(1);$('#dp').value=s.dplus;$('#dm').value=s.dminus;if(s.max!=null)$('#alt').value=s.max;if(s.duration)$('#du').value=s.duration;
+   $('#gs').textContent=`✓ ${pts.length} points · ${fmt(s.dist,2)} km · +${s.dplus} m / -${s.dminus} m`+(s.min!=null?` · ${s.min}–${s.max} m`:'')}
+  catch(x){st.track=null;st.st=null;er('GPX invalide : '+x.message)}};
+ const pv=()=>{$('#pv').innerHTML=st.photos.map((p,i)=>`<div><img src="${p.src}" alt="">${i===0?'<small style="position:absolute;bottom:2px;left:4px">★</small>':''}<button data-i="${i}">✕</button></div>`).join('')};
+ $('#ph').onchange=async e=>{er('');for(const f of e.target.files){try{st.photos.push(await readPhoto(f))}catch(x){er(x.message)}}pv();e.target.value=''};
+ $('#pv').onclick=e=>{const b=e.target.closest('button');if(b){st.photos.splice(+b.dataset.i,1);pv()}};
+ $('#go').onclick=async()=>{const n=$('#n').value.trim();if(!n)return er('Le nom du sommet est obligatoire.');
+  const s=st.st||{},num=id=>+$(id).value||0,h0=$('#h0').value;
+  const a={id:crypto.randomUUID(),name:n,location:$('#loc').value.trim(),massif:$('#ma').value.trim(),type:$('#ty').value,region:$('#rg').value,date:$('#dt').value,description:$('#ds').value.trim(),
+   alt:num('#alt'),dist:num('#dist'),dplus:num('#dp'),dminus:num('#dm'),duration:num('#du')||null,difficulty:$('#df').value,startHour:h0?+h0.slice(0,2):(s.startHour??null),
+   track:st.track?st.track:null,cum:s.cum||null,photos:st.photos,comments:[],likedBy:[],savedBy:[],likes:0,user:ME.name,uid:ME.id};
+  try{await repo.save(a);L_all=await load();location.hash='#/ascension/'+a.id}catch(x){er('Sauvegarde impossible (stockage plein ?) : '+x.message)}}};
 
-/* --- Vue 3D --- */
-let v3d={scene:null,renderer:null,camera:null,group:null,anim:null,dragging:false,lastX:0,autoRot:true};
-function heightAt(x,z){
- const d=Math.sqrt(x*x+z*z);
- const cone=Math.max(0,8.5-d*0.85);
- const noise=Math.sin(x*1.3)*Math.cos(z*1.7)*0.35+Math.sin((x+z)*0.5)*0.5;
- return cone+noise*Math.max(0,1-d/9);
-}
-function open3D(){
- if(!currentAscension)return;
- document.getElementById('v3d-title').textContent='Vue 3D — '+currentAscension.name;
- const wrap=document.getElementById('canvas3d-wrap');
- wrap.innerHTML='';
- document.getElementById('view3d').classList.add('open');
- const w=wrap.clientWidth,h=wrap.clientHeight;
- const scene=new THREE.Scene();
- scene.background=new THREE.Color(0x0F1512);
- const camera=new THREE.PerspectiveCamera(45,w/h,0.1,100);
- camera.position.set(0,11,17); camera.lookAt(0,1.5,0);
- const renderer=new THREE.WebGLRenderer({antialias:true});
- renderer.setSize(w,h); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
- wrap.appendChild(renderer.domElement);
+views.ascension=async id=>{
+ const a=L_all.find(x=>x.id===id);if(!a){app.innerHTML='<div class="section"><div class="empty">Ascension introuvable.</div></div>';return}
+ const liked=a.likedBy.includes(ME.id),saved=a.savedBy.includes(ME.id);
+ if(a.track&&!a.cum)a.cum=computeStats(a.track).cum;
+ app.innerHTML=`<div class="section"><div class="cover" style="${cover(a)}"><h2>${esc(a.name)}</h2></div>
+ <div class="meta" style="margin-bottom:14px"><span>${esc(a.user)}</span><span>${esc(a.date)}</span><span>${esc(a.type)}</span><span>${esc(a.massif||a.region||'')}</span>${a.demo?'<span>(Données de démonstration)</span>':''}</div>
+ <div class="strip five"><div class="sp"><b>${fmt(a.dist,1)} km</b><span>distance</span></div><div class="sp"><b>+${fmt(a.dplus)} m</b><span>D+</span></div><div class="sp"><b>-${fmt(a.dminus)} m</b><span>D-</span></div><div class="sp"><b>${a.duration?Math.floor(a.duration/60)+' h '+String(a.duration%60).padStart(2,'0'):'—'}</b><span>durée</span></div><div class="sp"><b>${fmt(a.alt)} m</b><span>altitude max</span></div></div>
+ <div class="acts"><button class="btn" id="lk">♥ ${a.likedBy.length+(a.likes||0)}${liked?' (aimé)':''}</button><button class="btn" id="sv">🔖 ${saved?'Enregistrée':'Enregistrer'}</button><button class="btn" id="sh">Partager</button><button class="btn" id="d3">Voir en 3D 🏔️</button><button class="btn" id="ex">Exporter GPX</button>${a.uid===ME.id?'<button class="btn" id="dl">Supprimer</button>':''}</div>
+ <div class="sh"><h2>Tracé</h2></div>${a.track?'<div class="map" id="map"></div><div class="sh" style="margin-top:20px"><h3>Profil d’altitude</h3></div><div id="pf"></div>':'<div class="empty">Aucun parcours GPX pour cette ascension.</div>'}
+ <div class="sh"><h2>Photos</h2></div>${a.photos?.length?`<div class="gal">${a.photos.map((p,i)=>`<img src="${p.src}" alt="" data-g="${i}">`).join('')}</div>`:'<div class="empty">Aucune photo.</div>'}
+ <div class="sh"><h2>Description</h2></div><p style="color:var(--fog);max-width:65ch">${esc(a.description)||'Pas de description.'}</p>
+ <div class="sh"><h2>Commentaires (${a.comments.length})</h2></div><div id="cs"></div><div style="display:flex;gap:8px;margin-top:12px"><input id="ci" maxlength="300" placeholder="Écrire un commentaire…"><button class="btn rust" id="cp">Publier</button></div></div>`;
+ if(a.track){const m=makeMap($('#map'));if(m){drawTrack(m,a);profile($('#pf'),a,m)}}
+ const cs=()=>$('#cs').innerHTML=a.comments.length?a.comments.map(c=>`<div class="cm"><span><b>${esc(c.user)}</b> <small>${esc(c.date)}</small><br>${esc(c.text)}</span>${c.uid===ME.id?`<button class="lk" data-c="${esc(c.id)}">Supprimer</button>`:''}</div>`).join(''):'<div class="empty">Aucun commentaire.</div>';cs();
+ const persist=async()=>{await repo.save(a);L_all=await load()};
+ $('#lk').onclick=async()=>{await toggle(a.id,'likedBy');L_all=await load();route()};
+ $('#sv').onclick=async()=>{await toggle(a.id,'savedBy');L_all=await load();route()};
+ $('#cp').onclick=async()=>{const t=$('#ci').value.trim();if(!t)return;a.comments.push({id:crypto.randomUUID(),uid:ME.id,user:ME.name,text:t,date:new Date().toLocaleDateString('fr-FR')});await persist();route()};
+ $('#cs').onclick=async e=>{const b=e.target.closest('[data-c]');if(!b)return;a.comments=a.comments.filter(c=>c.id!==b.dataset.c);await persist();route()};
+ $('#sh').onclick=async()=>{const url=location.origin+location.pathname+'#/ascension/'+a.id;
+  try{if(navigator.share)await navigator.share({title:a.name,url});else{await navigator.clipboard.writeText(url);toast('Lien copié.')}}catch{}};
+ $('#ex').onclick=()=>downloadGPX(a);$('#d3').onclick=()=>open3D(a);
+ $('#dl')&&($('#dl').onclick=async()=>{if(confirm('Supprimer cette ascension ?')){await repo.remove(a.id);L_all=await load();location.hash='#/profil'}});
+ app.querySelectorAll('[data-g]').forEach(i=>i.onclick=()=>{let k=+i.dataset.g;const show=()=>openOv(`<div style="text-align:center"><img src="${a.photos[k].src}" alt=""><div style="margin-top:10px"><button class="btn sm" id="pv0">‹</button> ${k+1}/${a.photos.length} <button class="btn sm" id="nx0">›</button></div></div>`);
+  show();$('#ovc').onclick=e=>{if(e.target.id==='pv0'){k=(k-1+a.photos.length)%a.photos.length;show()}if(e.target.id==='nx0'){k=(k+1)%a.photos.length;show()}}})};
 
- scene.add(new THREE.AmbientLight(0xffffff,0.55));
- const sun=new THREE.DirectionalLight(0xffffff,0.9); sun.position.set(6,10,4); scene.add(sun);
-
- const group=new THREE.Group(); scene.add(group);
-
- const size=20,seg=44;
- const geo=new THREE.PlaneGeometry(size,size,seg,seg);
- const pos=geo.attributes.position; const colors=[];
- for(let i=0;i<pos.count;i++){
-  const x=pos.getX(i), y=pos.getY(i);
-  const hgt=heightAt(x,y);
-  pos.setZ(i,hgt);
-  const t=Math.max(0,Math.min(1,hgt/8.5));
-  let c;
-  if(t<0.45) c=new THREE.Color(0x3E4A3B).lerp(new THREE.Color(0x5C7A63),t/0.45);
-  else if(t<0.75) c=new THREE.Color(0x5C7A63).lerp(new THREE.Color(0x8A8477),(t-0.45)/0.3);
-  else c=new THREE.Color(0x8A8477).lerp(new THREE.Color(0xF5F2EA),(t-0.75)/0.25);
-  colors.push(c.r,c.g,c.b);
- }
- geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
- geo.computeVertexNormals();
- const mat=new THREE.MeshStandardMaterial({vertexColors:true,flatShading:true,roughness:0.95});
- const terrain=new THREE.Mesh(geo,mat);
- terrain.rotation.x=-Math.PI/2;
- group.add(terrain);
-
- const pts=[]; const n=40;
- for(let i=0;i<=n;i++){
-  const a=i/n; const x=(1-a)*8.5, z=(1-a)*6.5;
-  pts.push(new THREE.Vector3(x,heightAt(x,z)+0.12,z));
- }
- const pathGeo=new THREE.BufferGeometry().setFromPoints(pts);
- const pathMat=new THREE.LineBasicMaterial({color:0xD9852E,linewidth:2});
- const pathLine=new THREE.Line(pathGeo,pathMat);
- pathLine.rotation.x=-Math.PI/2;
- group.add(pathLine);
-
- v3d.scene=scene; v3d.renderer=renderer; v3d.camera=camera; v3d.group=group; v3d.autoRot=true;
-
- function loop(){
-  v3d.anim=requestAnimationFrame(loop);
-  if(v3d.autoRot&&!v3d.dragging) group.rotation.y+=0.0035;
-  renderer.render(scene,camera);
- }
- loop();
-
- renderer.domElement.addEventListener('pointerdown',e=>{v3d.dragging=true;v3d.lastX=e.clientX;});
- window.addEventListener('pointerup',()=>{v3d.dragging=false;});
- window.addEventListener('pointermove',e=>{
-  if(!v3d.dragging)return;
-  const dx=e.clientX-v3d.lastX; v3d.lastX=e.clientX;
-  group.rotation.y+=dx*0.008;
- });
-}
-function close3D(){
- document.getElementById('view3d').classList.remove('open');
- if(v3d.anim)cancelAnimationFrame(v3d.anim);
- if(v3d.renderer){v3d.renderer.dispose();}
- document.getElementById('canvas3d-wrap').innerHTML='';
- v3d={scene:null,renderer:null,camera:null,group:null,anim:null,dragging:false,lastX:0,autoRot:true};
-}
+/* ============ Router ============ */
+const NAV=[['','Accueil'],['explorer','Explorer'],['communaute','Communauté'],['carte','Carte'],['profil','Profil']];
+async function route(){
+ if(mapInst){mapInst.remove();mapInst=null}closeOv();
+ const parts=(location.hash.replace(/^#\/?/,'')||'').split('/');const v=parts[0]||'accueil';
+ $('#links').innerHTML=NAV.map(([h,l])=>`<a href="#/${h}" class="${(parts[0]||'')===h?'on':''}">${l}</a>`).join('');
+ document.querySelectorAll('.bn a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')===`#/${parts[0]||''}`));
+ try{L_all=await load();await (views[v]||views.accueil)(parts[1]);window.scrollTo(0,0)}
+ catch(e){app.innerHTML=`<div class="section"><div class="err">Erreur : ${esc(e.message)}. IndexedDB est peut-être désactivé (navigation privée).</div></div>`}}
+addEventListener('hashchange',route);route();
 </script>
 </body>
 </html>
+
 
