@@ -290,42 +290,84 @@ function open3D(a){
 /* Couvre sommets, randonnées balisées, via ferratas et pistes de ski. Coordonnées et tracés réels, jamais inventés. */
 const ROUTE_TYPES={
  peak:{label:'Sommet',icon:'🏔️'},
- hiking:{label:'Randonnée',icon:'🥾'},
+ hiking:{label:'Randonnée pédestre',icon:'🥾'},
+ mtb:{label:'VTT',icon:'🚵'},
+ horse:{label:'Équestre',icon:'🐴'},
  via_ferrata:{label:'Via ferrata',icon:'🧗'},
- piste:{label:'Piste de ski',icon:'⛷️'}
+ climbing:{label:'Escalade',icon:'🧗‍♀️'},
+ piste_alpine:{label:'Piste de ski alpin',icon:'⛷️'},
+ piste_nordic:{label:'Ski nordique / fond',icon:'🎿'},
+ piste_touring:{label:'Ski de randonnée',icon:'🏔️'},
+ piste_sled:{label:'Piste de luge',icon:'🛷'},
+ piste_hike:{label:'Sentier raquettes',icon:'🥾❄️'},
+ refuge:{label:'Refuge / cabane',icon:'🛖'},
+ lake:{label:'Lac',icon:'💧'}
 };
+const PISTE_KIND={downhill:'piste_alpine',nordic:'piste_nordic',skitour:'piste_touring',sled:'piste_sled',hike:'piste_hike',sleigh:'piste_sled',connection:'piste_alpine',ski_touring:'piste_touring'};
+const PISTE_DIFF={novice:'verte',easy:'bleue',intermediate:'rouge',advanced:'noire',expert:'noire',freeride:'hors-piste'};
+/* Zone de recherche : France métropolitaine + Corse (sud,ouest,nord,est). Sans cette limite, Overpass scanne toute la planète
+   sur une quinzaine de types de tags à la fois et dépasse systématiquement le timeout -> résultats vides, même pour "Mont Blanc". */
+const SEARCH_BBOX='41.2,-5.2,51.2,9.7';
+/* Le serveur public overpass-api.de est parfois saturé/lent : on essaie plusieurs miroirs équivalents (mêmes données OSM) avec un délai limité,
+   et on bascule sur le suivant plutôt que de renvoyer un échec sec. */
+const OVERPASS_MIRRORS=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.osm.ch/api/interpreter'];
+async function fetchOverpass(query){
+ let lastErr=null;
+ for(const base of OVERPASS_MIRRORS){
+  const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),12000);
+  try{
+   const r=await fetch(base,{method:'POST',body:'data='+encodeURIComponent(query),signal:ctrl.signal});
+   clearTimeout(t);
+   if(!r.ok){lastErr=new Error('code '+r.status);continue}
+   return await r.json();
+  }catch(x){clearTimeout(t);lastErr=x.name==='AbortError'?new Error('délai dépassé'):x}
+ }
+ throw new Error('Tous les serveurs de recherche sont indisponibles pour le moment ('+(lastErr?.message||'?')+'). Réessaie dans quelques instants.');
+}
 async function searchRoutes(q){
  const n=q.replace(/["\\]/g,'');
- const query=`[out:json][timeout:25];(
-  node["natural"="peak"]["name"~"${n}",i];
-  way["route"="hiking"]["name"~"${n}",i];
-  way["via_ferrata_scale"]["name"~"${n}",i];
-  way["route"="via_ferrata"]["name"~"${n}",i];
-  way["piste:type"]["name"~"${n}",i];
- );out geom 40;`;
- const r=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(query)});
- if(!r.ok)throw new Error('Service indisponible (code '+r.status+').');
- const j=await r.json();
+ const query=`[out:json][timeout:25][bbox:${SEARCH_BBOX}];(
+  nwr["natural"~"^(peak|water)$"]["name"~"${n}",i];
+  nwr["route"~"^(hiking|foot|mtb|horse|via_ferrata)$"]["name"~"${n}",i];
+  nwr["via_ferrata_scale"]["name"~"${n}",i];
+  nwr["sport"="climbing"]["name"~"${n}",i];
+  nwr["piste:type"]["name"~"${n}",i];
+  nwr["tourism"~"^(alpine_hut|wilderness_hut)$"]["name"~"${n}",i];
+ );out geom 60;`;
+ const j=await fetchOverpass(query);
  const seen=new Set();
  return (j.elements||[]).map(e=>{
-  let kind='hiking';const tg=e.tags||{};
+  const tg=e.tags||{};let kind='hiking',extra='';
   if(tg.natural==='peak')kind='peak';
-  else if(tg['piste:type'])kind='piste';
-  else if(tg.via_ferrata_scale||tg.route==='via_ferrata')kind='via_ferrata';
-  else if(tg.route==='hiking')kind='hiking';
+  else if(tg.natural==='water')kind='lake';
+  else if(tg.tourism==='alpine_hut'||tg.tourism==='wilderness_hut')kind='refuge';
+  else if(tg.sport==='climbing')kind='climbing';
+  else if(tg['piste:type']){kind=PISTE_KIND[tg['piste:type']]||'piste_alpine';if(tg['piste:difficulty'])extra=PISTE_DIFF[tg['piste:difficulty']]?'difficulté '+PISTE_DIFF[tg['piste:difficulty']]:tg['piste:difficulty']}
+  else if(tg.via_ferrata_scale||tg.route==='via_ferrata'){kind='via_ferrata';if(tg.via_ferrata_scale)extra='cotation '+tg.via_ferrata_scale}
+  else if(tg.route==='mtb')kind='mtb';
+  else if(tg.route==='horse')kind='horse';
+  else if(tg.route==='hiking'||tg.route==='foot'){kind='hiking';if(tg.sac_scale)extra=tg.sac_scale}
   let lat,lon,track=null;
   if(e.type==='node'){lat=e.lat;lon=e.lon}
-  else if(e.geometry&&e.geometry.length){track=e.geometry.map(g=>({lat:g.lat,lon:g.lon,ele:null}));lat=track[0].lat;lon=track[0].lon}
+  else if(e.type==='way'&&e.geometry&&e.geometry.length){
+   const pts=e.geometry.filter(g=>g).map(g=>({lat:g.lat,lon:g.lon,ele:null}));if(!pts.length)return null;
+   lat=pts[0].lat;lon=pts[0].lon;if(kind!=='lake')track=pts; // pour un lac, le contour n'est pas un itinéraire : on garde juste la position
+  }
+  else if(e.type==='relation'&&e.members){ // itinéraire réel : assemblage des tronçons de la relation OSM, comme un tracé Visorando
+   const pts=(e.members||[]).filter(m=>m.type==='way'&&m.geometry&&m.geometry.length).flatMap(m=>m.geometry.map(g=>({lat:g.lat,lon:g.lon,ele:null})));
+   if(!pts.length)return null;lat=pts[0].lat;lon=pts[0].lon;if(kind!=='lake')track=pts;
+  }
   else return null;
-  return{key:e.type+e.id,name:tg.name||'Sans nom',kind,lat,lon,ele:tg.ele?Math.round(+tg.ele):null,track};
+  const dist=track&&track.length>1?computeStats(track).dist:null;
+  return{key:e.type+e.id,name:tg.name||'Sans nom',kind,lat,lon,ele:tg.ele?Math.round(+tg.ele):null,track,extra,dist};
  }).filter(x=>x&&!seen.has(x.key)&&seen.add(x.key));
 }
 function routeDetail(res){
  const t=ROUTE_TYPES[res.kind];
  const matches=L_all.filter(a=>{const an=a.name.toLowerCase(),rn=res.name.toLowerCase();return an===rn||an.includes(rn)||rn.includes(an)});
  const photos=matches.flatMap(a=>(a.photos||[]).map(p=>({...p,user:a.user})));
- openOv(`<h3 style="margin-bottom:6px">${t.icon} ${esc(res.name)}</h3><div class="ro">${t.label}${res.ele?' · '+fmt(res.ele)+' m':''} · ${res.lat.toFixed(4)}, ${res.lon.toFixed(4)}</div>
- ${res.track?'<div class="map" id="rdmap" style="height:280px;margin-bottom:14px"></div>':'<div class="notice" style="margin-bottom:14px">Pas de tracé OSM disponible pour cet élément — seule la position est connue.</div>'}
+ openOv(`<h3 style="margin-bottom:6px">${t.icon} ${esc(res.name)}</h3><div class="ro">${t.label}${res.ele?' · '+fmt(res.ele)+' m':''}${res.extra?' · '+esc(res.extra):''} · ${res.lat.toFixed(4)}, ${res.lon.toFixed(4)}</div>
+ ${res.track?`<div class="strip" style="margin:0 0 14px"><div class="sp"><b>${fmt(res.dist,1)} km</b><span>distance du tracé</span></div><div class="sp"><b>≈ ${(()=>{const mn=Math.round(res.dist/4*60);return mn>=60?Math.floor(mn/60)+' h '+String(mn%60).padStart(2,'0'):mn+' min'})()}</b><span>durée estimée (4 km/h)</span></div></div><div class="map" id="rdmap" style="height:280px;margin-bottom:14px"></div>`:'<div class="notice" style="margin-bottom:14px">Pas de tracé OSM disponible pour cet élément — seule la position est connue.</div>'}
  <div class="acts"><button class="btn rust sm" id="usehere">Créer mon ascension ici</button></div>
  <div class="sh" style="margin-top:10px"><h3 style="font-size:1rem">Déjà parcouru par la communauté</h3><p>${matches.length} ascension(s)</p></div>
  ${photos.length?`<div class="gal">${photos.slice(0,12).map(p=>`<img src="${p.src}" alt="" title="${esc(p.user)}">`).join('')}</div>`:''}
@@ -339,7 +381,7 @@ function bindRouteSearch(inputSel,listSel){
  inp.oninput=()=>{clearTimeout(timer);const q=inp.value.trim();if(q.length<3){list.classList.remove('on');list.innerHTML='';return}
   timer=setTimeout(async()=>{list.innerHTML='<div class="sugi">Recherche…</div>';list.classList.add('on');
    try{const res=await searchRoutes(q);
-    list.innerHTML=res.length?res.map((r,i)=>{const t=ROUTE_TYPES[r.kind];return `<div class="sugi" data-i="${i}"><span>${t.icon}</span><span>${esc(r.name)}${r.ele?' · '+fmt(r.ele)+' m':''}</span><span class="tp">${t.label}</span></div>`}).join(''):'<div class="sugi">Aucun résultat pour cette recherche.</div>';
+    list.innerHTML=res.length?res.map((r,i)=>{const t=ROUTE_TYPES[r.kind];return `<div class="sugi" data-i="${i}"><span>${t.icon}</span><span>${esc(r.name)}${r.ele?' · '+fmt(r.ele)+' m':''}${r.dist?' · '+fmt(r.dist,1)+' km':''}${r.extra?' · '+esc(r.extra):''}</span><span class="tp">${t.label}</span></div>`}).join(''):'<div class="sugi">Aucun résultat pour cette recherche.</div>';
     list.querySelectorAll('[data-i]').forEach(el=>el.onclick=()=>{routeDetail(res[+el.dataset.i]);list.classList.remove('on');inp.value=res[+el.dataset.i].name});
    }catch(x){list.innerHTML=`<div class="sugi">Recherche indisponible : ${esc(x.message)}.</div>`}
   },450)};
@@ -354,7 +396,7 @@ const views={};
 views.accueil=async()=>{const l=L_all,t=totals(mine(l));
  app.innerHTML=`<div class="section"><div style="color:var(--glacier)">Bonjour ${esc(ME.name.split(' ')[0])} 👋</div><h1 style="font-size:clamp(1.9rem,4vw,2.8rem);max-width:14ch;line-height:1.14;margin:8px 0 12px">Partagez vos sommets.</h1>
  <p style="color:var(--fog);max-width:44ch">Enregistrez vos ascensions, revivez vos parcours et découvrez ceux de la communauté.</p>
- <div class="sug"><label>Rechercher un sommet, une randonnée, une via ferrata, une piste…</label><input id="hq" placeholder="🔍 Tape un nom…"><div class="sugl" id="hl"></div></div>
+ <div class="sug"><label>Sommet, randonnée, VTT, équestre, via ferrata, escalade, piste de ski (alpin/nordique/rando), refuge…</label><input id="hq" placeholder="🔍 Tape un nom…"><div class="sugl" id="hl"></div></div>
  <div class="acts"><a class="btn rust" href="#/creer">+ Créer une ascension</a><a class="btn" href="#/explorer">Explorer</a></div>${strip(t)}
  <div class="sh"><h2>Fil communautaire</h2><p>Les dernières ascensions publiées</p></div>${grid(l,'Aucune ascension pour le moment.')}</div>`;bindCards(app);bindRouteSearch('#hq','#hl')};
 
@@ -364,7 +406,7 @@ views.explorer=async()=>{
  <input id="q" placeholder="🔍 Chercher dans les ascensions publiées…"><div class="chips" style="margin-top:12px" id="ch"></div>
  <div class="grid3" style="margin-bottom:16px"><div><label>Altitude min.</label><select id="alt"><option value="0">Toutes</option><option value="1500">1 500 m+</option><option value="2500">2 500 m+</option><option value="3000">3 000 m+</option></select></div>
  <div><label>Trier par</label><select id="so"><option value="date">Date</option><option value="alt">Altitude</option><option value="dist">Distance</option><option value="dplus">D+</option></select></div></div><div id="res"></div>
- <div class="sh" style="margin-top:32px"><h2>Rechercher un itinéraire</h2><p>Sommets, randonnées, via ferratas, pistes de ski — base géographique réelle (OpenStreetMap)</p></div>
+ <div class="sh" style="margin-top:32px"><h2>Rechercher un itinéraire</h2><p>Sommets, randonnées, VTT, équestre, via ferratas, escalade, pistes de ski, refuges — base géographique réelle (OpenStreetMap)</p></div>
  <div class="sug"><input id="sq" placeholder="Ex. Mont Blanc, Via ferrata de..., Piste de..."><div class="sugl" id="sl"></div></div>
  <p class="ro">Clique un résultat pour voir son tracé réel et les ascensions déjà publiées par la communauté sur cet itinéraire.</p></div>`;
  const chips=()=>$('#ch').innerHTML=[...types.map(x=>['type',x]),...regs.map(x=>['region',x])].map(([k,v])=>`<span class="chip ${f[k]===v?'on':''}" data-k="${k}" data-v="${v}">${v}</span>`).join('');
