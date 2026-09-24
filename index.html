@@ -6,7 +6,6 @@
 <title>Cîmes — Partagez vos sommets</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.12.0/maplibre-gl.min.css">
 <style>
 :root{--ink:#181F1C;--ink-2:#212A25;--paper:#F5F2EA;--fog:#96A199;--rust:#D9852E;--glacier:#7FA3B5;--green:#5C7A63;--line:rgba(245,242,234,.13)}
 *{box-sizing:border-box}
@@ -81,7 +80,6 @@ label{display:block;font-size:.78rem;color:var(--fog);margin:12px 0 4px}
 <div class="ov" id="ov"><button class="btn sm x" id="ovx">✕</button><div id="ovc"></div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.12.0/maplibre-gl.min.js"></script>
 <script>
 /* ============ Utils ============ */
 const $=(s,r=document)=>r.querySelector(s);
@@ -246,10 +244,21 @@ function profile(el,a,m){
  svg.addEventListener('pointermove',move);svg.addEventListener('pointerdown',move)}
 
 /* ============ 3D relief réel (MapLibre GL + élévation Terrarium, données ouvertes, sans clé) ============ */
-let m3d=null;
+let m3d=null,maplibreLoading=null;
 function stop3d(){if(m3d){try{m3d.remove()}catch{}m3d=null}}
-function open3D(a){
- if(!a.track||!window.maplibregl){toast('Vue 3D impossible : trace ou moteur 3D indisponible.');return}
+function loadMapLibre(){ // chargé une seule fois, à la demande, pour ne pas alourdir chaque page
+ if(window.maplibregl)return Promise.resolve();
+ if(maplibreLoading)return maplibreLoading;
+ return maplibreLoading=new Promise((res,rej)=>{
+  const link=document.createElement('link');link.rel='stylesheet';link.href='https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.12.0/maplibre-gl.min.css';document.head.appendChild(link);
+  const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.12.0/maplibre-gl.min.js';
+  s.onload=res;s.onerror=()=>rej(new Error('Chargement du moteur 3D impossible (réseau).'));document.head.appendChild(s);
+ });
+}
+async function open3D(a){
+ if(!a.track){toast('Vue 3D impossible : cette ascension n’a pas de trace.');return}
+ toast('Chargement de la vue 3D…');
+ try{await loadMapLibre()}catch(x){toast(x.message);return}
  openOv(`<h3 style="margin-bottom:10px">Vue 3D — relief réel — ${esc(a.name)}</h3><div class="m3" id="m3" style="aspect-ratio:16/10"></div>
  <p class="ro">Glisser pour tourner (clic droit) · molette pour zoomer · glisser (clic gauche) pour déplacer. Élévation réelle (données ouvertes, exagération ×1,4).</p>
  <button class="btn sm" id="rc">Survoler le tracé</button>`);
@@ -333,7 +342,7 @@ async function searchRoutes(q){
   nwr["sport"="climbing"]["name"~"${n}",i];
   nwr["piste:type"]["name"~"${n}",i];
   nwr["tourism"~"^(alpine_hut|wilderness_hut)$"]["name"~"${n}",i];
- );out geom 60;`;
+ );out geom 40;`;
  const j=await fetchOverpass(query);
  const seen=new Set();
  return (j.elements||[]).map(e=>{
@@ -351,11 +360,11 @@ async function searchRoutes(q){
   if(e.type==='node'){lat=e.lat;lon=e.lon}
   else if(e.type==='way'&&e.geometry&&e.geometry.length){
    const pts=e.geometry.filter(g=>g).map(g=>({lat:g.lat,lon:g.lon,ele:null}));if(!pts.length)return null;
-   lat=pts[0].lat;lon=pts[0].lon;if(kind!=='lake')track=pts; // pour un lac, le contour n'est pas un itinéraire : on garde juste la position
+   lat=pts[0].lat;lon=pts[0].lon;if(kind!=='lake')track=simplify(pts,350); // pour un lac, le contour n'est pas un itinéraire : on garde juste la position
   }
   else if(e.type==='relation'&&e.members){ // itinéraire réel : assemblage des tronçons de la relation OSM, comme un tracé Visorando
    const pts=(e.members||[]).filter(m=>m.type==='way'&&m.geometry&&m.geometry.length).flatMap(m=>m.geometry.map(g=>({lat:g.lat,lon:g.lon,ele:null})));
-   if(!pts.length)return null;lat=pts[0].lat;lon=pts[0].lon;if(kind!=='lake')track=pts;
+   if(!pts.length)return null;lat=pts[0].lat;lon=pts[0].lon;if(kind!=='lake')track=simplify(pts,350);
   }
   else return null;
   const dist=track&&track.length>1?computeStats(track).dist:null;
@@ -384,7 +393,7 @@ function bindRouteSearch(inputSel,listSel){
     list.innerHTML=res.length?res.map((r,i)=>{const t=ROUTE_TYPES[r.kind];return `<div class="sugi" data-i="${i}"><span>${t.icon}</span><span>${esc(r.name)}${r.ele?' · '+fmt(r.ele)+' m':''}${r.dist?' · '+fmt(r.dist,1)+' km':''}${r.extra?' · '+esc(r.extra):''}</span><span class="tp">${t.label}</span></div>`}).join(''):'<div class="sugi">Aucun résultat pour cette recherche.</div>';
     list.querySelectorAll('[data-i]').forEach(el=>el.onclick=()=>{routeDetail(res[+el.dataset.i]);list.classList.remove('on');inp.value=res[+el.dataset.i].name});
    }catch(x){list.innerHTML=`<div class="sugi">Recherche indisponible : ${esc(x.message)}.</div>`}
-  },450)};
+  },550)};
  document.addEventListener('click',e=>{if(!inp.contains(e.target)&&!list.contains(e.target))list.classList.remove('on')});
 }
 
