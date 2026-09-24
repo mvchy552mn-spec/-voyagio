@@ -6,6 +6,7 @@
 <title>Cîmes — Partagez vos sommets</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.12.0/maplibre-gl.min.css">
 <style>
 :root{--ink:#181F1C;--ink-2:#212A25;--paper:#F5F2EA;--fog:#96A199;--rust:#D9852E;--glacier:#7FA3B5;--green:#5C7A63;--line:rgba(245,242,234,.13)}
 *{box-sizing:border-box}
@@ -66,6 +67,9 @@ label{display:block;font-size:.78rem;color:var(--fog);margin:12px 0 4px}
 @media(max-width:800px){.bn{display:block}}
 .pv{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.pv div{position:relative}.pv img{width:80px;height:80px;object-fit:cover;border-radius:4px}
 .pv button{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer}
+.sug{position:relative}.sugl{position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--ink-2);border:1px solid var(--line);border-radius:6px;z-index:50;max-height:320px;overflow:auto;display:none}
+.sugl.on{display:block}.sugi{padding:10px 12px;display:flex;gap:10px;align-items:center;cursor:pointer;border-bottom:1px solid var(--line);font-size:.88rem}.sugi:hover{background:var(--ink)}.sugi:last-child{border:none}
+.sugi span.tp{margin-left:auto;color:var(--fog);font-size:.74rem}
 </style>
 </head>
 <body>
@@ -77,7 +81,7 @@ label{display:block;font-size:.78rem;color:var(--fog);margin:12px 0 4px}
 <div class="ov" id="ov"><button class="btn sm x" id="ovx">✕</button><div id="ovc"></div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.12.0/maplibre-gl.min.js"></script>
 <script>
 /* ============ Utils ============ */
 const $=(s,r=document)=>r.querySelector(s);
@@ -85,6 +89,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const fmt=(n,d=0)=>Number(n||0).toLocaleString('fr-FR',{maximumFractionDigits:d});
 const ME={id:'lea',name:'Léa Fontaine',handle:'@lea.fontaine'}; // remplaçable par un vrai compte (phase 2)
 const LIMITS={gpx:15*1024*1024,photo:12*1024*1024};
+let PENDING=null; // relai ponctuel entre l'enregistrement GPS / la recherche d'itinéraire et le formulaire de création
 
 /* ============ Data layer (repository — swappable for Supabase) ============ */
 const repo=(()=>{
@@ -190,7 +195,7 @@ const BADGES=[['🥾','Première ascension',t=>t.n>=1],['🔥','5 sorties',t=>t.
  ['🏃','100 km',t=>t.dist>=100],['⛰️','10 000 m D+',t=>t.dplus>=10000],['📸','Photo ajoutée',t=>t.photos>=1],['🌙','Sortie nocturne',t=>t.night]];
 
 /* ============ UI helpers ============ */
-const app=$('#app');let L_all=[],mapInst=null,cleanup=null;
+const app=$('#app');let L_all=[],mapInst=null,cleanup=null,activeWatch=null;
 function toast(m){const d=document.createElement('div');d.className='err';d.style.cssText='position:fixed;bottom:90px;left:20px;right:20px;z-index:4000;max-width:420px;margin:auto';d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),3500)}
 const cover=a=>a.photos?.[0]?`background-image:url('${a.photos[0].src}')`:`background:linear-gradient(${a.g?.[0]||'#8FB4C4'},${a.g?.[1]||'#3E5A63'})`;
 function card(a){const liked=a.likedBy.includes(ME.id);
@@ -240,59 +245,140 @@ function profile(el,a,m){
   if(m){if(!mk)mk=L.circleMarker([p.lat,p.lon],{radius:7,color:'#fff',fillColor:'#D9852E',fillOpacity:1}).addTo(m);else mk.setLatLng([p.lat,p.lon])}};
  svg.addEventListener('pointermove',move);svg.addEventListener('pointerdown',move)}
 
-/* ============ 3D (trace en relief exagéré ; terrain réel : Configuration requise) ============ */
-let r3=null;
-function stop3d(){if(r3){cancelAnimationFrame(r3.raf);r3.ren.dispose();r3=null}}
+/* ============ 3D relief réel (MapLibre GL + élévation Terrarium, données ouvertes, sans clé) ============ */
+let m3d=null;
+function stop3d(){if(m3d){try{m3d.remove()}catch{}m3d=null}}
 function open3D(a){
- if(!a.track||!window.THREE||!(() =>{try{return !!document.createElement('canvas').getContext('webgl')}catch{return false}})()){toast('Vue 3D impossible : trace ou WebGL indisponible.');return}
- openOv(`<h3 style="margin-bottom:10px">Vue 3D — ${esc(a.name)}</h3><div class="m3" id="m3"></div><p class="ro">Glisser pour tourner · pincer/molette pour zoomer. Trace GPS en relief (altitude exagérée). Le terrain réel nécessite MAPBOX_TOKEN ou un DEM : configuration requise.</p><button class="btn sm" id="rc">Recentrer</button>`);
- const w=$('#m3'),S=simplify(a.track,400);const lat0=S[0].lat,lon0=S[0].lon,k=111320,e0=Math.min(...S.map(p=>p.ele??0));
- const V=S.map(p=>new THREE.Vector3((p.lon-lon0)*k*Math.cos(rad(lat0)),((p.ele??e0)-e0)*1.5,-(p.lat-lat0)*k));
- const box=new THREE.Box3().setFromPoints(V),c=box.getCenter(new THREE.Vector3()),sz=box.getSize(new THREE.Vector3()),ext=Math.max(sz.x,sz.y,sz.z,50);
- V.forEach(v=>v.sub(c).multiplyScalar(10/ext));
- const sc=new THREE.Scene();sc.background=new THREE.Color(0x0F1512);
- const cam=new THREE.PerspectiveCamera(45,w.clientWidth/w.clientHeight,.1,100);
- const ren=new THREE.WebGLRenderer({antialias:false});ren.setPixelRatio(Math.min(devicePixelRatio,1.5));ren.setSize(w.clientWidth,w.clientHeight);w.appendChild(ren.domElement);
- const g=new THREE.Group();sc.add(g);g.add(new THREE.GridHelper(14,14,0x44534A,0x2A342E));
- g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(V),new THREE.LineBasicMaterial({color:0xD9852E})));
- const dot=(v,col)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(.15,10,10),new THREE.MeshBasicMaterial({color:col}));m.position.copy(v);g.add(m)};
- dot(V[0],0x7FA3B5);dot(V.at(-1),0xF5F2EA);
- let rx=.5,ry=0,dist=16,auto=true;const home=()=>{rx=.5;ry=0;dist=16;cam.position.set(0,0,dist)};home();
- const upd=()=>{cam.position.set(0,dist*Math.sin(rx),dist*Math.cos(rx));cam.lookAt(0,0,0);g.rotation.y=ry};
- const ptr=new Map();let pd=0;
- w.onpointerdown=e=>{ptr.set(e.pointerId,e);auto=false};w.onpointerup=w.onpointercancel=e=>{ptr.delete(e.pointerId);pd=0};
- w.onpointermove=e=>{if(!ptr.has(e.pointerId))return;const p=ptr.get(e.pointerId);
-  if(ptr.size===2){const o=[...ptr.values()].find(q=>q.pointerId!==e.pointerId);const d=Math.hypot(e.clientX-o.clientX,e.clientY-o.clientY);if(pd)dist=Math.max(5,Math.min(40,dist*pd/d));pd=d}
-  else{ry+=(e.clientX-p.clientX)*.01;rx=Math.max(.05,Math.min(1.5,rx+(e.clientY-p.clientY)*.01))}ptr.set(e.pointerId,e)};
- w.onwheel=e=>{e.preventDefault();dist=Math.max(5,Math.min(40,dist+e.deltaY*.02))};
- $('#rc').onclick=()=>{home();auto=true};
- r3={ren,raf:0};(function loop(){r3.raf=requestAnimationFrame(loop);if(auto)ry+=.004;upd();ren.render(sc,cam)})();
+ if(!a.track||!window.maplibregl){toast('Vue 3D impossible : trace ou moteur 3D indisponible.');return}
+ openOv(`<h3 style="margin-bottom:10px">Vue 3D — relief réel — ${esc(a.name)}</h3><div class="m3" id="m3" style="aspect-ratio:16/10"></div>
+ <p class="ro">Glisser pour tourner (clic droit) · molette pour zoomer · glisser (clic gauche) pour déplacer. Élévation réelle (données ouvertes, exagération ×1,4).</p>
+ <button class="btn sm" id="rc">Survoler le tracé</button>`);
+ const pts=simplify(a.track,300);
+ const line={type:'Feature',geometry:{type:'LineString',coordinates:pts.map(p=>[p.lon,p.lat])}};
+ const start=pts[0],end=pts.at(-1);
+ const m=new maplibregl.Map({
+  container:$('#m3'),
+  style:{version:8,
+   sources:{
+    osm:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap'},
+    terrain:{type:'raster-dem',tiles:['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],tileSize:256,encoding:'terrarium',maxzoom:15}
+   },
+   layers:[{id:'osm',type:'raster',source:'osm'}],
+   terrain:{source:'terrain',exaggeration:1.4}
+  },
+  center:[start.lon,start.lat],zoom:12,pitch:65,bearing:0,maxPitch:85,antialias:true
+ });
+ m3d=m;
+ m.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'top-right');
+ m.on('load',()=>{
+  m.addSource('trace',{type:'geojson',data:line});
+  m.addLayer({id:'trace-line',type:'line',source:'trace',paint:{'line-color':'#D9852E','line-width':4}});
+  m.addSource('pts',{type:'geojson',data:{type:'FeatureCollection',features:[
+   {type:'Feature',geometry:{type:'Point',coordinates:[start.lon,start.lat]},properties:{c:'#7FA3B5'}},
+   {type:'Feature',geometry:{type:'Point',coordinates:[end.lon,end.lat]},properties:{c:'#F5F2EA'}}]}});
+  m.addLayer({id:'trace-pts',type:'circle',source:'pts',paint:{'circle-radius':6,'circle-color':['get','c'],'circle-stroke-width':2,'circle-stroke-color':'#181F1C'}});
+  const b=new maplibregl.LngLatBounds();pts.forEach(p=>b.extend([p.lon,p.lat]));m.fitBounds(b,{padding:60,pitch:65,duration:0});
+ });
+ m.on('error',e=>{if(!m._warned){m._warned=true;toast('Le relief réel n’a pas pu se charger (réseau/CORS). Nouvelle tentative possible en rouvrant la vue 3D.')}});
+ $('#rc').onclick=()=>{
+  if(!m3d)return;const dur=pts.length*60;let i=0;
+  const step=()=>{if(!m3d||i>=pts.length)return;const p=pts[i];m3d.easeTo({center:[p.lon,p.lat],pitch:68,bearing:(i/pts.length)*40-20,duration:70,easing:x=>x});i+=Math.max(1,Math.round(pts.length/120));if(i<pts.length)setTimeout(step,70)};
+  step();};
 }
+
+/* ============ Recherche d'itinéraires (données géographiques réelles — OpenStreetMap/Overpass) ============ */
+/* Couvre sommets, randonnées balisées, via ferratas et pistes de ski. Coordonnées et tracés réels, jamais inventés. */
+const ROUTE_TYPES={
+ peak:{label:'Sommet',icon:'🏔️'},
+ hiking:{label:'Randonnée',icon:'🥾'},
+ via_ferrata:{label:'Via ferrata',icon:'🧗'},
+ piste:{label:'Piste de ski',icon:'⛷️'}
+};
+async function searchRoutes(q){
+ const n=q.replace(/["\\]/g,'');
+ const query=`[out:json][timeout:25];(
+  node["natural"="peak"]["name"~"${n}",i];
+  way["route"="hiking"]["name"~"${n}",i];
+  way["via_ferrata_scale"]["name"~"${n}",i];
+  way["route"="via_ferrata"]["name"~"${n}",i];
+  way["piste:type"]["name"~"${n}",i];
+ );out geom 40;`;
+ const r=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(query)});
+ if(!r.ok)throw new Error('Service indisponible (code '+r.status+').');
+ const j=await r.json();
+ const seen=new Set();
+ return (j.elements||[]).map(e=>{
+  let kind='hiking';const tg=e.tags||{};
+  if(tg.natural==='peak')kind='peak';
+  else if(tg['piste:type'])kind='piste';
+  else if(tg.via_ferrata_scale||tg.route==='via_ferrata')kind='via_ferrata';
+  else if(tg.route==='hiking')kind='hiking';
+  let lat,lon,track=null;
+  if(e.type==='node'){lat=e.lat;lon=e.lon}
+  else if(e.geometry&&e.geometry.length){track=e.geometry.map(g=>({lat:g.lat,lon:g.lon,ele:null}));lat=track[0].lat;lon=track[0].lon}
+  else return null;
+  return{key:e.type+e.id,name:tg.name||'Sans nom',kind,lat,lon,ele:tg.ele?Math.round(+tg.ele):null,track};
+ }).filter(x=>x&&!seen.has(x.key)&&seen.add(x.key));
+}
+function routeDetail(res){
+ const t=ROUTE_TYPES[res.kind];
+ const matches=L_all.filter(a=>{const an=a.name.toLowerCase(),rn=res.name.toLowerCase();return an===rn||an.includes(rn)||rn.includes(an)});
+ const photos=matches.flatMap(a=>(a.photos||[]).map(p=>({...p,user:a.user})));
+ openOv(`<h3 style="margin-bottom:6px">${t.icon} ${esc(res.name)}</h3><div class="ro">${t.label}${res.ele?' · '+fmt(res.ele)+' m':''} · ${res.lat.toFixed(4)}, ${res.lon.toFixed(4)}</div>
+ ${res.track?'<div class="map" id="rdmap" style="height:280px;margin-bottom:14px"></div>':'<div class="notice" style="margin-bottom:14px">Pas de tracé OSM disponible pour cet élément — seule la position est connue.</div>'}
+ <div class="acts"><button class="btn rust sm" id="usehere">Créer mon ascension ici</button></div>
+ <div class="sh" style="margin-top:10px"><h3 style="font-size:1rem">Déjà parcouru par la communauté</h3><p>${matches.length} ascension(s)</p></div>
+ ${photos.length?`<div class="gal">${photos.slice(0,12).map(p=>`<img src="${p.src}" alt="" title="${esc(p.user)}">`).join('')}</div>`:''}
+ ${matches.length?matches.map(a=>`<div class="cm"><a href="#/ascension/${esc(a.id)}" id="mgo${esc(a.id)}">${esc(a.name)} — ${esc(a.user)}</a><small>${esc(a.date)}</small></div>`).join(''):'<div class="empty">Personne n’a encore publié d’ascension sur cet itinéraire. Sois le·la premier·ère !</div>'}`);
+ if(res.track){const m=makeMap($('#rdmap'));if(m){const ll=res.track.map(p=>[p.lat,p.lon]);const pl=L.polyline(ll,{color:'#7FA3B5',weight:4}).addTo(m);m.fitBounds(pl.getBounds(),{padding:[16,16]})}}
+ $('#usehere').onclick=()=>{PENDING={summit:{name:res.name,lat:res.lat,lon:res.lon,ele:res.ele},track:res.track};closeOv();location.hash='#/creer'};
+ matches.forEach(a=>{const el=$('#mgo'+a.id);if(el)el.onclick=e=>{e.preventDefault();closeOv();location.hash='#/ascension/'+a.id}});
+}
+function bindRouteSearch(inputSel,listSel){
+ const inp=$(inputSel),list=$(listSel);let timer=null;
+ inp.oninput=()=>{clearTimeout(timer);const q=inp.value.trim();if(q.length<3){list.classList.remove('on');list.innerHTML='';return}
+  timer=setTimeout(async()=>{list.innerHTML='<div class="sugi">Recherche…</div>';list.classList.add('on');
+   try{const res=await searchRoutes(q);
+    list.innerHTML=res.length?res.map((r,i)=>{const t=ROUTE_TYPES[r.kind];return `<div class="sugi" data-i="${i}"><span>${t.icon}</span><span>${esc(r.name)}${r.ele?' · '+fmt(r.ele)+' m':''}</span><span class="tp">${t.label}</span></div>`}).join(''):'<div class="sugi">Aucun résultat pour cette recherche.</div>';
+    list.querySelectorAll('[data-i]').forEach(el=>el.onclick=()=>{routeDetail(res[+el.dataset.i]);list.classList.remove('on');inp.value=res[+el.dataset.i].name});
+   }catch(x){list.innerHTML=`<div class="sugi">Recherche indisponible : ${esc(x.message)}.</div>`}
+  },450)};
+ document.addEventListener('click',e=>{if(!inp.contains(e.target)&&!list.contains(e.target))list.classList.remove('on')});
+}
+
+/* ============ Badges & stats ============ */
+/* (voir plus haut) */
 
 /* ============ Views ============ */
 const views={};
 views.accueil=async()=>{const l=L_all,t=totals(mine(l));
  app.innerHTML=`<div class="section"><div style="color:var(--glacier)">Bonjour ${esc(ME.name.split(' ')[0])} 👋</div><h1 style="font-size:clamp(1.9rem,4vw,2.8rem);max-width:14ch;line-height:1.14;margin:8px 0 12px">Partagez vos sommets.</h1>
  <p style="color:var(--fog);max-width:44ch">Enregistrez vos ascensions, revivez vos parcours et découvrez ceux de la communauté.</p>
+ <div class="sug"><label>Rechercher un sommet, une randonnée, une via ferrata, une piste…</label><input id="hq" placeholder="🔍 Tape un nom…"><div class="sugl" id="hl"></div></div>
  <div class="acts"><a class="btn rust" href="#/creer">+ Créer une ascension</a><a class="btn" href="#/explorer">Explorer</a></div>${strip(t)}
- <div class="sh"><h2>Fil communautaire</h2><p>Les dernières ascensions publiées</p></div>${grid(l,'Aucune ascension pour le moment.')}</div>`;bindCards(app)};
+ <div class="sh"><h2>Fil communautaire</h2><p>Les dernières ascensions publiées</p></div>${grid(l,'Aucune ascension pour le moment.')}</div>`;bindCards(app);bindRouteSearch('#hq','#hl')};
+
 views.explorer=async()=>{
  const f={q:'',type:'',region:'',sort:'date',minAlt:0};const types=['Randonnée','Trail','Trek','Alpinisme','Escalade','Ski de randonnée'],regs=['Alpes','Pyrénées','Jura','Vosges','Massif central','Corse'];
  app.innerHTML=`<div class="section"><div class="sh"><h2>Explorer</h2><p>Sommets, parcours, massifs, utilisateurs</p></div>
- <input id="q" placeholder="🔍 Chercher un sommet, un massif, un utilisateur…"><div class="chips" style="margin-top:12px" id="ch"></div>
+ <input id="q" placeholder="🔍 Chercher dans les ascensions publiées…"><div class="chips" style="margin-top:12px" id="ch"></div>
  <div class="grid3" style="margin-bottom:16px"><div><label>Altitude min.</label><select id="alt"><option value="0">Toutes</option><option value="1500">1 500 m+</option><option value="2500">2 500 m+</option><option value="3000">3 000 m+</option></select></div>
- <div><label>Trier par</label><select id="so"><option value="date">Date</option><option value="alt">Altitude</option><option value="dist">Distance</option><option value="dplus">D+</option></select></div></div><div id="res"></div></div>`;
+ <div><label>Trier par</label><select id="so"><option value="date">Date</option><option value="alt">Altitude</option><option value="dist">Distance</option><option value="dplus">D+</option></select></div></div><div id="res"></div>
+ <div class="sh" style="margin-top:32px"><h2>Rechercher un itinéraire</h2><p>Sommets, randonnées, via ferratas, pistes de ski — base géographique réelle (OpenStreetMap)</p></div>
+ <div class="sug"><input id="sq" placeholder="Ex. Mont Blanc, Via ferrata de..., Piste de..."><div class="sugl" id="sl"></div></div>
+ <p class="ro">Clique un résultat pour voir son tracé réel et les ascensions déjà publiées par la communauté sur cet itinéraire.</p></div>`;
  const chips=()=>$('#ch').innerHTML=[...types.map(x=>['type',x]),...regs.map(x=>['region',x])].map(([k,v])=>`<span class="chip ${f[k]===v?'on':''}" data-k="${k}" data-v="${v}">${v}</span>`).join('');
  const draw=()=>{const q=f.q.toLowerCase();let l=L_all.filter(a=>(!q||[a.name,a.massif,a.user,a.region].some(s=>(s||'').toLowerCase().includes(q)))&&(!f.type||a.type===f.type)&&(!f.region||a.region===f.region)&&a.alt>=f.minAlt);
   l=l.sort((x,y)=>f.sort==='date'?(y.date||'').localeCompare(x.date||''):(y[f.sort]||0)-(x[f.sort]||0));$('#res').innerHTML=grid(l,'Aucun résultat pour ces critères.');bindCards($('#res'))};
  $('#ch').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;f[c.dataset.k]=f[c.dataset.k]===c.dataset.v?'':c.dataset.v;chips();draw()};
- $('#q').oninput=e=>{f.q=e.target.value;draw()};$('#alt').onchange=e=>{f.minAlt=+e.target.value;draw()};$('#so').onchange=e=>{f.sort=e.target.value;draw()};chips();draw()};
+ $('#q').oninput=e=>{f.q=e.target.value;draw()};$('#alt').onchange=e=>{f.minAlt=+e.target.value;draw()};$('#so').onchange=e=>{f.sort=e.target.value;draw()};chips();draw();
+ bindRouteSearch('#sq','#sl')};
 views.communaute=async()=>{const users=[...new Set(L_all.map(a=>a.user))];
  app.innerHTML=`<div class="section"><div class="sh"><h2>Communauté</h2><p>${users.length} randonneurs actifs</p></div>
  ${users.map(u=>{const t=totals(L_all.filter(a=>a.user===u));return`<div class="card" style="cursor:default;padding:14px;margin-bottom:10px"><b>${esc(u)}</b><div class="meta"><span>${t.n} ascensions</span><span>${fmt(t.dist,1)} km</span><span>+${fmt(t.dplus)} m</span><span>max ${fmt(t.alt)} m</span></div></div>`}).join('')}</div>`};
 views.carte=async()=>{
  app.innerHTML=`<div class="section"><div class="sh"><h2>La carte des ascensions</h2><p>Clique sur une trace pour ouvrir la fiche</p></div><div class="map" id="map"></div>
- <p class="ro">Fonds : OpenTopoMap (relief, courbes de niveau) et OSM — sans clé. Le terrain 3D réel requiert MAPBOX_TOKEN.</p></div>`;
+ <p class="ro">Fonds : OpenTopoMap (relief, courbes de niveau) et OSM — sans clé. La vue 3D (fiche d’ascension) utilise une élévation réelle ouverte.</p></div>`;
  const m=makeMap($('#map'));if(!m)return;const withT=L_all.filter(a=>a.track),grp=[];
  withT.forEach(a=>{const pl=L.polyline(simplify(a.track,200).map(p=>[p.lat,p.lon]),{color:'#D9852E',weight:4}).addTo(m);grp.push(pl);
   pl.bindTooltip(`${esc(a.name)} · ${fmt(a.dist,1)} km · ${esc(a.user)}`);pl.on('click',()=>location.hash='#/ascension/'+a.id);
@@ -314,6 +400,34 @@ views.profil=async()=>{const l=mine(L_all),t=totals(l),tab=sessionStorage.tab||'
  $('#tb').onclick=e=>{const c=e.target.closest('.chip');if(c)show(c.dataset.t)};show(tab)};
 views.premium=async()=>{app.innerHTML=`<div class="section"><h1 style="text-align:center">Allez plus loin avec Cîmes.</h1><p style="text-align:center;color:var(--fog)">Page Premium conservée visuellement. Aucun paiement dans cette phase : toutes les fonctionnalités sont accessibles.</p></div>`};
 
+views.enregistrer=async()=>{
+ if(!navigator.geolocation){app.innerHTML='<div class="section"><div class="sh"><h2>Ma sortie</h2></div><div class="notice">GPS indisponible sur ce navigateur/appareil. Configuration requise (permission de localisation).</div></div>';return}
+ app.innerHTML=`<div class="section"><div class="sh"><h2>Ma sortie</h2><p>Enregistrement GPS en direct</p></div><div id="er"></div>
+ <div class="strip"><div class="sp"><b id="rt">00:00</b><span>temps</span></div><div class="sp"><b id="rd">0,0 km</b><span>distance</span></div><div class="sp"><b id="rp">+0 m</b><span>D+</span></div><div class="sp"><b id="ra">— m</b><span>altitude</span></div></div>
+ <div class="map" id="rmap" style="margin-bottom:16px"></div>
+ <div class="acts"><button class="btn rust" id="b0">Démarrer</button><button class="btn" id="b1" disabled>Pause</button><button class="btn" id="b2" disabled>Terminer</button></div>
+ <p class="ro">Les points sont enregistrés uniquement dans ton navigateur pendant la sortie. En quittant cette page sans terminer, l’enregistrement est perdu.</p></div>`;
+ const er=m=>{$('#er').innerHTML=m?`<div class="err">${esc(m)}</div>`:''};
+ const rec={points:[],watchId:null,paused:false,t0:null,pausedMs:0,pauseAt:null};
+ const m=makeMap($('#rmap'));let line=null,mk=null;
+ const fmtT=s=>`${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor(s/60)%60).padStart(2,'0')}`;
+ const tick=()=>{if(!rec.t0)return;const el=Math.round((Date.now()-rec.t0-rec.pausedMs)/1000);$('#rt').textContent=fmtT(Math.max(0,el))};
+ setInterval(tick,1000);
+ const draw=()=>{if(rec.points.length<1||!m)return;const ll=rec.points.map(p=>[p.lat,p.lon]);
+  if(!line)line=L.polyline(ll,{color:'#D9852E',weight:4}).addTo(m);else line.setLatLngs(ll);
+  const last=rec.points.at(-1);if(!mk)mk=L.circleMarker([last.lat,last.lon],{radius:7,color:'#fff',fillColor:'#7FA3B5',fillOpacity:1}).addTo(m);else mk.setLatLng([last.lat,last.lon]);
+  m.panTo([last.lat,last.lon])};
+ const onPos=pos=>{if(rec.paused)return;const p={lat:pos.coords.latitude,lon:pos.coords.longitude,ele:pos.coords.altitude,t:Date.now()};rec.points.push(p);
+  const s=computeStats(rec.points);$('#rd').textContent=fmt(s.dist,2)+' km';$('#rp').textContent='+'+fmt(s.dplus)+' m';$('#ra').textContent=(p.ele!=null?Math.round(p.ele):'—')+' m';draw()};
+ const onErr=e=>er('GPS : '+e.message);
+ $('#b0').onclick=()=>{er('');rec.t0=Date.now();rec.watchId=activeWatch=navigator.geolocation.watchPosition(onPos,onErr,{enableHighAccuracy:true,maximumAge:2000,timeout:20000});
+  $('#b0').disabled=true;$('#b1').disabled=false;$('#b2').disabled=false};
+ $('#b1').onclick=()=>{rec.paused=!rec.paused;$('#b1').textContent=rec.paused?'Reprendre':'Pause';
+  if(rec.paused)rec.pauseAt=Date.now();else{rec.pausedMs+=Date.now()-rec.pauseAt}};
+ $('#b2').onclick=()=>{navigator.geolocation.clearWatch(rec.watchId);activeWatch=null;
+  if(rec.points.length<2){toast('Pas assez de points GPS enregistrés pour créer une ascension.');return}
+  PENDING={track:rec.points};location.hash='#/creer'}};
+
 views.creer=async()=>{
  const st={track:null,st:null,photos:[]};
  app.innerHTML=`<div class="section"><div class="sh"><h2>Créer une ascension</h2></div><div id="er"></div>
@@ -324,11 +438,18 @@ views.creer=async()=>{
  <div class="grid2"><div><label>Heure de départ</label><input type="time" id="h0"></div><div><label>Heure d’arrivée</label><input type="time" id="h1"></div></div>
  <label>Description</label><textarea id="ds" rows="3" maxlength="1000"></textarea>
  <label>Parcours : importer un GPX</label><input type="file" id="gpx" accept=".gpx"><div id="gs" class="ro"></div>
+ <button class="btn sm" id="rec0" type="button" style="margin-bottom:8px">🎯 Enregistrer maintenant (GPS)</button>
  <div class="grid3"><div><label>Altitude max (m)</label><input type="number" id="alt"></div><div><label>Distance (km)</label><input type="number" step="0.1" id="dist"></div><div><label>D+ (m)</label><input type="number" id="dp"></div>
  <div><label>D- (m)</label><input type="number" id="dm"></div><div><label>Durée (min)</label><input type="number" id="du"></div><div><label>Difficulté</label><select id="df"><option>Facile</option><option>Moyen</option><option>Difficile</option><option>Expert</option></select></div></div>
  <label>Photos (galerie ou appareil photo)</label><input type="file" id="ph" accept="image/*" multiple><div class="pv" id="pv"></div>
  <p class="ro">📍 = position GPS détectée automatiquement (EXIF). Sans GPS, positionne la photo manuellement sur le tracé une fois le GPX importé.</p>
  <div class="acts"><button class="btn rust" id="go">Publier l’ascension</button></div></div>`;
+ $('#rec0').onclick=()=>location.hash='#/enregistrer';
+ if(PENDING){const P=PENDING;PENDING=null;
+  if(P.summit){const s=P.summit;$('#n').value=s.name;if(s.ele)$('#alt').value=s.ele;$('#loc').value=`${s.lat.toFixed(4)}, ${s.lon.toFixed(4)}`}
+  if(P.track){const pts=P.track,s=computeStats(pts);st.track=pts;st.st=s;
+   $('#dist').value=s.dist.toFixed(1);$('#dp').value=s.dplus;$('#dm').value=s.dminus;if(s.max!=null)$('#alt').value=s.max;if(s.duration)$('#du').value=s.duration;
+   $('#gs').textContent=`✓ Tracé importé : ${pts.length} points · ${fmt(s.dist,2)} km`+(s.dplus?` · +${s.dplus} m`:'')+(s.max==null?' (sans données d’altitude — complète-les manuellement ou importe un GPX)':'')}}
  const er=m=>{$('#er').innerHTML=m?`<div class="err">${esc(m)}</div>`:''};
  $('#gpx').onchange=async e=>{const f=e.target.files[0];if(!f)return;er('');
   try{if(!/\.gpx$/i.test(f.name))throw new Error('Extension non supportée : .gpx attendu.');if(f.size>LIMITS.gpx)throw new Error('Fichier GPX trop volumineux (max 15 Mo).');
@@ -383,6 +504,7 @@ views.ascension=async id=>{
 const NAV=[['','Accueil'],['explorer','Explorer'],['communaute','Communauté'],['carte','Carte'],['profil','Profil']];
 async function route(){
  if(mapInst){mapInst.remove();mapInst=null}closeOv();
+ if(activeWatch){navigator.geolocation.clearWatch(activeWatch);activeWatch=null;toast('Enregistrement GPS interrompu (page quittée).')}
  const parts=(location.hash.replace(/^#\/?/,'')||'').split('/');const v=parts[0]||'accueil';
  $('#links').innerHTML=NAV.map(([h,l])=>`<a href="#/${h}" class="${(parts[0]||'')===h?'on':''}">${l}</a>`).join('');
  document.querySelectorAll('.bn a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')===`#/${parts[0]||''}`));
