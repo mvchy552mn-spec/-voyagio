@@ -4,16 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cîmes — Partagez vos sommets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
 :root{--ink:#181F1C;--ink-2:#212A25;--paper:#F5F2EA;--fog:#96A199;--rust:#D9852E;--glacier:#7FA3B5;--green:#5C7A63;--line:rgba(245,242,234,.13)}
 *{box-sizing:border-box}
-body{margin:0;background:var(--ink);color:var(--paper);font-family:Inter,sans-serif;line-height:1.5;padding:env(safe-area-inset-top) 0 calc(76px + env(safe-area-inset-bottom))}
+html{overflow-x:hidden;width:100%}
+body{margin:0;background:var(--ink);color:var(--paper);font-family:Inter,system-ui,sans-serif;line-height:1.5;padding:env(safe-area-inset-top) 0 calc(76px + env(safe-area-inset-bottom));overflow-x:hidden;width:100%;min-height:100vh}
+img{max-width:100%}
 h1,h2,h3{font-family:Fraunces,serif;font-weight:500;margin:0}
 a{color:inherit;text-decoration:none}button,input,select,textarea{font-family:inherit}
 .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
-header{position:sticky;top:0;z-index:2000;background:rgba(24,31,28,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:14px 0}
+header{position:sticky;top:0;z-index:2000;background:rgba(24,31,28,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:14px 0;width:100%}
+header nav.wrap{position:relative}
 nav{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .logo{font-family:Fraunces,serif;font-size:1.25rem;color:var(--paper)}.logo b{color:var(--rust)}
 .links{display:flex;gap:22px;font-size:.92rem;color:var(--fog)}.links a.on,.links a:hover{color:var(--paper)}
@@ -193,7 +198,7 @@ function photoDist(a,p){if(!a.track||p.lat==null||!a.cum)return null;let best=0,
  a.track.forEach((q,i)=>{const d=hav(q,{lat:p.lat,lon:p.lon});if(d<bd){bd=d;best=i}});return a.cum[best]}
 function openPositionModal(track,current,onPick){
  openOv(`<h3 style="margin-bottom:10px">Positionner la photo</h3><div class="map" id="pmap" style="height:320px"></div><p class="ro">Clique sur le tracé à l’endroit où la photo a été prise, puis valide.</p><button class="btn rust" id="pmok">Valider</button>`);
- const m=makeMap($('#pmap'));if(!m)return;
+ const m=makeOverlayMap($('#pmap'));if(!m)return;
  const ll=simplify(track).map(p=>[p.lat,p.lon]);const pl=L.polyline(ll,{color:'#D9852E',weight:4}).addTo(m);m.fitBounds(pl.getBounds(),{padding:[20,20]});
  let chosen=current&&current.lat!=null?current:null;
  let mk=chosen?L.circleMarker([chosen.lat,chosen.lon],{radius:8,color:'#fff',fillColor:'#D9852E',fillOpacity:1}).addTo(m):null;
@@ -211,7 +216,7 @@ const BADGES=[['🥾','Première ascension',t=>t.n>=1],['🔥','5 sorties',t=>t.
  ['🏃','100 km',t=>t.dist>=100],['⛰️','10 000 m D+',t=>t.dplus>=10000],['📸','Photo ajoutée',t=>t.photos>=1],['🌙','Sortie nocturne',t=>t.night]];
 
 /* ============ UI helpers ============ */
-const app=$('#app');let L_all=[],mapInst=null,cleanup=null,activeWatch=null;
+const app=$('#app');let L_all=[],mapInst=null,ovMapInst=null,cleanup=null,activeWatch=null;
 function toast(m){const d=document.createElement('div');d.className='err';d.style.cssText='position:fixed;bottom:90px;left:20px;right:20px;z-index:4000;max-width:420px;margin:auto';d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),3500)}
 const cover=a=>a.photos?.[0]?`background-image:url('${a.photos[0].src}')`:`background:linear-gradient(${a.g?.[0]||'#8FB4C4'},${a.g?.[1]||'#3E5A63'})`;
 function card(a){const liked=a.likedBy.includes(ME.id);
@@ -224,12 +229,15 @@ function bindCards(root){root.querySelectorAll('[data-open]').forEach(c=>c.oncli
  root.querySelectorAll('[data-like]').forEach(b=>b.onclick=async e=>{e.stopPropagation();await toggle(b.dataset.like,'likedBy');route()})}
 async function toggle(id,key){const a=await repo.get(id);const i=a[key].indexOf(ME.id);i<0?a[key].push(ME.id):a[key].splice(i,1);await repo.save(a)}
 const openOv=h=>{$('#ovc').innerHTML=h;$('#ov').classList.add('on')};
-const closeOv=()=>{$('#ov').classList.remove('on');$('#ovc').innerHTML='';stop3d()};$('#ovx').onclick=closeOv;
+const closeOv=()=>{$('#ov').classList.remove('on');$('#ovc').innerHTML='';stop3d();if(ovMapInst){ovMapInst.remove();ovMapInst=null}};$('#ovx').onclick=closeOv;
 
 /* ============ Map (Leaflet + OSM ; relief : configuration requise) ============ */
 const MAPBOX_TOKEN=window.MAPBOX_TOKEN||''; // à définir pour le terrain Mapbox
-function makeMap(el){
- if(mapInst){mapInst.remove();mapInst=null}
+function invalidateSoon(m){ // Leaflet calcule sa taille à l'initialisation ; si le conteneur n'a pas encore fini sa mise en page
+ if(!m)return;                // (transition de section, ouverture d'un panneau, police qui charge…) la carte reste décalée
+ requestAnimationFrame(()=>{try{m.invalidateSize()}catch{}});
+ setTimeout(()=>{try{m.invalidateSize()}catch{}},300)}
+function buildBaseMap(el){
  if(!window.L){el.innerHTML='<div class="notice">Carte impossible à charger (Leaflet indisponible). Vérifie ta connexion.</div>';return null}
  const m=L.map(el,{zoomControl:true}).setView([45.2,6.2],8);
  const osm=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'});
@@ -237,7 +245,15 @@ function makeMap(el){
  // Imagerie satellite Esri World Imagery : mosaïque mise à jour en continu par Esri/Maxar/Earthstar (pas de clé requise, aucune date fixe par tuile)
  const sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Imagerie © Esri, Maxar, Earthstar Geographics, GIS User Community'});
  topo.addTo(m);L.control.layers({'Relief / courbes (OpenTopoMap)':topo,'Plan (OSM)':osm,'Satellite (Esri, imagerie récente)':sat}).addTo(m);
- return mapInst=m}
+ invalidateSoon(m);
+ return m}
+function makeMap(el){ // carte "de page" (fiche, carte générale, enregistrement) — une seule à la fois, nettoyée au changement de route
+ if(mapInst){mapInst.remove();mapInst=null}
+ const m=buildBaseMap(el);if(m)mapInst=m;return m}
+function makeOverlayMap(el){ // carte dans une fenêtre superposée (positionnement photo, détail d'itinéraire) — ne détruit jamais la carte de la page en dessous
+ if(ovMapInst){ovMapInst.remove();ovMapInst=null}
+ const m=buildBaseMap(el);if(m)ovMapInst=m;return m}
+addEventListener('resize',()=>{invalidateSoon(mapInst);invalidateSoon(ovMapInst)});
 const drawTrack=(m,a)=>{const ll=simplify(a.track).map(p=>[p.lat,p.lon]);const pl=L.polyline(ll,{color:'#D9852E',weight:4}).addTo(m);
  L.circleMarker(ll[0],{radius:6,color:'#7FA3B5',fillOpacity:1}).addTo(m).bindTooltip('Départ');L.circleMarker(ll.at(-1),{radius:6,color:'#F5F2EA',fillOpacity:1}).addTo(m).bindTooltip('Arrivée');
  m.fitBounds(pl.getBounds(),{padding:[20,20]});return pl};
@@ -403,7 +419,7 @@ function routeDetail(res){
  ${photos.length?`<div class="gal">${photos.slice(0,12).map(p=>`<img src="${p.src}" alt="" title="${esc(p.user)}">`).join('')}</div>`:''}
  ${matches.length?matches.map(a=>`<div class="cm"><a href="#/ascension/${esc(a.id)}" id="mgo${esc(a.id)}">${esc(a.name)} — ${esc(a.user)}</a><small>${esc(a.date)}</small></div>`).join(''):'<div class="empty">Personne n’a encore publié d’ascension sur cet itinéraire. Sois le·la premier·ère !</div>'}
  <div class="acts"><button class="btn sm" id="usehere">+ Créer mon ascension ici</button></div>`);
- const m=makeMap($('#rdmap'));
+ const m=makeOverlayMap($('#rdmap'));
  if(m){if(res.track){const ll=res.track.map(p=>[p.lat,p.lon]);const pl=L.polyline(ll,{color:'#7FA3B5',weight:4}).addTo(m);m.fitBounds(pl.getBounds(),{padding:[16,16]})}
   else{L.marker([res.lat,res.lon]).addTo(m);m.setView([res.lat,res.lon],13)}}
  $('#usehere').onclick=()=>{PENDING={summit:{name:res.name,lat:res.lat,lon:res.lon,ele:res.ele},track:res.track};closeOv();location.hash='#/creer'};
@@ -638,3 +654,4 @@ addEventListener('hashchange',route);route();
 </script>
 </body>
 </html>
+
