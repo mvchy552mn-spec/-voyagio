@@ -69,14 +69,32 @@ label{display:block;font-size:.78rem;color:var(--fog);margin:12px 0 4px}
 .sug{position:relative}.sugl{position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--ink-2);border:1px solid var(--line);border-radius:6px;z-index:50;max-height:320px;overflow:auto;display:none}
 .sugl.on{display:block}.sugi{padding:10px 12px;display:flex;gap:10px;align-items:center;cursor:pointer;border-bottom:1px solid var(--line);font-size:.88rem}.sugi:hover{background:var(--ink)}.sugi:last-child{border:none}
 .sugi span.tp{margin-left:auto;color:var(--fog);font-size:.74rem}
+.ddmenu{display:none;position:absolute;top:100%;left:0;right:0;background:var(--ink-2);border-bottom:1px solid var(--line);box-shadow:0 12px 24px rgba(0,0,0,.35);padding:16px 20px 20px;z-index:1999}
+.ddmenu.on{display:block}
+.ddlinks{display:flex;flex-direction:column;gap:2px;margin-top:4px}
+.ddlinks a{padding:11px 6px;border-bottom:1px solid var(--line);color:var(--fog);font-size:.95rem}
+.ddlinks a.on,.ddlinks a:hover{color:var(--paper)}
+.eco-footer{max-width:1080px;margin:8px auto 0;padding:16px 20px 4px;color:var(--fog);font-size:.8rem;text-align:center;border-top:1px solid var(--line)}
+.prev-card{background:var(--ink-2);border:1px solid var(--line);border-radius:6px;padding:16px;margin-bottom:14px}
+.prev-card h3{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:1.05rem}
+.prev-card ul{margin:0;padding-left:18px;color:var(--fog);font-size:.9rem;line-height:1.65}
 </style>
 </head>
 <body>
 <header><nav class="wrap"><a href="#/" class="logo">Cîmes<b>▲</b></a>
 <div class="links" id="links"></div>
-<a href="#/creer" class="btn rust sm">+ Créer une ascension</a></nav></header>
+<div style="display:flex;gap:8px;align-items:center">
+<button class="btn sm" id="menuBtn" type="button" aria-haspopup="true" aria-expanded="false">☰ Menu</button>
+<a href="#/creer" class="btn rust sm">+ Créer une ascension</a>
+</div></nav>
+<div class="ddmenu wrap" id="ddmenu">
+ <div class="sug"><label>Rechercher un sommet, une randonnée, une piste de ski, un refuge…</label><input id="dq" placeholder="🔍 Rechercher…"><div class="sugl" id="dl"></div></div>
+ <div class="ddlinks" id="ddlinks"></div>
+</div>
+</header>
 <main class="wrap" id="app"></main>
 <div class="bn"><div><a href="#/">🏠<br>Accueil</a><a href="#/explorer">🧭<br>Explorer</a><a href="#/creer" class="plus">+</a><a href="#/carte">🗺️<br>Carte</a><a href="#/profil">👤<br>Profil</a></div></div>
+<footer class="eco-footer">🌿 Merci de toujours redescendre vos déchets, même biodégradables, et de respecter la faune et la flore locales. La montagne se mérite : protégeons-la ensemble, pour vous et pour les prochains randonneurs.</footer>
 <div class="ov" id="ov"><button class="btn sm x" id="ovx">✕</button><div id="ovc"></div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -216,7 +234,9 @@ function makeMap(el){
  const m=L.map(el,{zoomControl:true}).setView([45.2,6.2],8);
  const osm=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'});
  const topo=L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:17,attribution:'© OpenTopoMap (CC-BY-SA)'});
- topo.addTo(m);L.control.layers({'Relief / courbes (OpenTopoMap)':topo,'Plan (OSM)':osm}).addTo(m);
+ // Imagerie satellite Esri World Imagery : mosaïque mise à jour en continu par Esri/Maxar/Earthstar (pas de clé requise, aucune date fixe par tuile)
+ const sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Imagerie © Esri, Maxar, Earthstar Geographics, GIS User Community'});
+ topo.addTo(m);L.control.layers({'Relief / courbes (OpenTopoMap)':topo,'Plan (OSM)':osm,'Satellite (Esri, imagerie récente)':sat}).addTo(m);
  return mapInst=m}
 const drawTrack=(m,a)=>{const ll=simplify(a.track).map(p=>[p.lat,p.lon]);const pl=L.polyline(ll,{color:'#D9852E',weight:4}).addTo(m);
  L.circleMarker(ll[0],{radius:6,color:'#7FA3B5',fillOpacity:1}).addTo(m).bindTooltip('Départ');L.circleMarker(ll.at(-1),{radius:6,color:'#F5F2EA',fillOpacity:1}).addTo(m).bindTooltip('Arrivée');
@@ -376,12 +396,16 @@ function routeDetail(res){
  const matches=L_all.filter(a=>{const an=a.name.toLowerCase(),rn=res.name.toLowerCase();return an===rn||an.includes(rn)||rn.includes(an)});
  const photos=matches.flatMap(a=>(a.photos||[]).map(p=>({...p,user:a.user})));
  openOv(`<h3 style="margin-bottom:6px">${t.icon} ${esc(res.name)}</h3><div class="ro">${t.label}${res.ele?' · '+fmt(res.ele)+' m':''}${res.extra?' · '+esc(res.extra):''} · ${res.lat.toFixed(4)}, ${res.lon.toFixed(4)}</div>
- ${res.track?`<div class="strip" style="margin:0 0 14px"><div class="sp"><b>${fmt(res.dist,1)} km</b><span>distance du tracé</span></div><div class="sp"><b>≈ ${(()=>{const mn=Math.round(res.dist/4*60);return mn>=60?Math.floor(mn/60)+' h '+String(mn%60).padStart(2,'0'):mn+' min'})()}</b><span>durée estimée (4 km/h)</span></div></div><div class="map" id="rdmap" style="height:280px;margin-bottom:14px"></div>`:'<div class="notice" style="margin-bottom:14px">Pas de tracé OSM disponible pour cet élément — seule la position est connue.</div>'}
- <div class="acts"><button class="btn rust sm" id="usehere">Créer mon ascension ici</button></div>
- <div class="sh" style="margin-top:10px"><h3 style="font-size:1rem">Déjà parcouru par la communauté</h3><p>${matches.length} ascension(s)</p></div>
+ ${res.track?`<div class="strip" style="margin:0 0 14px"><div class="sp"><b>${fmt(res.dist,1)} km</b><span>distance du tracé</span></div><div class="sp"><b>≈ ${(()=>{const mn=Math.round(res.dist/4*60);return mn>=60?Math.floor(mn/60)+' h '+String(mn%60).padStart(2,'0'):mn+' min'})()}</b><span>durée estimée (4 km/h)</span></div></div>`:''}
+ <div class="map" id="rdmap" style="height:300px;margin-bottom:6px"></div>
+ ${res.track?'':'<p class="ro">Pas de tracé linéaire OSM pour cet élément (point unique) — seule la position est affichée.</p>'}
+ <div class="sh" style="margin-top:14px"><h3 style="font-size:1rem">Déjà parcouru par la communauté</h3><p>${matches.length} ascension(s)</p></div>
  ${photos.length?`<div class="gal">${photos.slice(0,12).map(p=>`<img src="${p.src}" alt="" title="${esc(p.user)}">`).join('')}</div>`:''}
- ${matches.length?matches.map(a=>`<div class="cm"><a href="#/ascension/${esc(a.id)}" id="mgo${esc(a.id)}">${esc(a.name)} — ${esc(a.user)}</a><small>${esc(a.date)}</small></div>`).join(''):'<div class="empty">Personne n’a encore publié d’ascension sur cet itinéraire. Sois le·la premier·ère !</div>'}`);
- if(res.track){const m=makeMap($('#rdmap'));if(m){const ll=res.track.map(p=>[p.lat,p.lon]);const pl=L.polyline(ll,{color:'#7FA3B5',weight:4}).addTo(m);m.fitBounds(pl.getBounds(),{padding:[16,16]})}}
+ ${matches.length?matches.map(a=>`<div class="cm"><a href="#/ascension/${esc(a.id)}" id="mgo${esc(a.id)}">${esc(a.name)} — ${esc(a.user)}</a><small>${esc(a.date)}</small></div>`).join(''):'<div class="empty">Personne n’a encore publié d’ascension sur cet itinéraire. Sois le·la premier·ère !</div>'}
+ <div class="acts"><button class="btn sm" id="usehere">+ Créer mon ascension ici</button></div>`);
+ const m=makeMap($('#rdmap'));
+ if(m){if(res.track){const ll=res.track.map(p=>[p.lat,p.lon]);const pl=L.polyline(ll,{color:'#7FA3B5',weight:4}).addTo(m);m.fitBounds(pl.getBounds(),{padding:[16,16]})}
+  else{L.marker([res.lat,res.lon]).addTo(m);m.setView([res.lat,res.lon],13)}}
  $('#usehere').onclick=()=>{PENDING={summit:{name:res.name,lat:res.lat,lon:res.lon,ele:res.ele},track:res.track};closeOv();location.hash='#/creer'};
  matches.forEach(a=>{const el=$('#mgo'+a.id);if(el)el.onclick=e=>{e.preventDefault();closeOv();location.hash='#/ascension/'+a.id}});
 }
@@ -429,7 +453,7 @@ views.communaute=async()=>{const users=[...new Set(L_all.map(a=>a.user))];
  ${users.map(u=>{const t=totals(L_all.filter(a=>a.user===u));return`<div class="card" style="cursor:default;padding:14px;margin-bottom:10px"><b>${esc(u)}</b><div class="meta"><span>${t.n} ascensions</span><span>${fmt(t.dist,1)} km</span><span>+${fmt(t.dplus)} m</span><span>max ${fmt(t.alt)} m</span></div></div>`}).join('')}</div>`};
 views.carte=async()=>{
  app.innerHTML=`<div class="section"><div class="sh"><h2>La carte des ascensions</h2><p>Clique sur une trace pour ouvrir la fiche</p></div><div class="map" id="map"></div>
- <p class="ro">Fonds : OpenTopoMap (relief, courbes de niveau) et OSM — sans clé. La vue 3D (fiche d’ascension) utilise une élévation réelle ouverte.</p></div>`;
+ <p class="ro">Fonds disponibles via le sélecteur de calques (en haut à droite de la carte) : OpenTopoMap (relief, courbes de niveau), OSM (plan) et Satellite Esri — mosaïque d’imagerie satellite régulièrement mise à jour par Esri/Maxar, sans clé requise (la fraîcheur exacte varie selon la zone). La vue 3D (fiche d’ascension) utilise une élévation réelle ouverte.</p></div>`;
  const m=makeMap($('#map'));if(!m)return;const withT=L_all.filter(a=>a.track),grp=[];
  withT.forEach(a=>{const pl=L.polyline(simplify(a.track,200).map(p=>[p.lat,p.lon]),{color:'#D9852E',weight:4}).addTo(m);grp.push(pl);
   pl.bindTooltip(`${esc(a.name)} · ${fmt(a.dist,1)} km · ${esc(a.user)}`);pl.on('click',()=>location.hash='#/ascension/'+a.id);
@@ -450,6 +474,50 @@ views.profil=async()=>{const l=mine(L_all),t=totals(l),tab=sessionStorage.tab||'
  const show=k=>{sessionStorage.tab=k;$('#tp').innerHTML=panes[k]();bindCards($('#tp'));$('#tb').querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.t===k))};
  $('#tb').onclick=e=>{const c=e.target.closest('.chip');if(c)show(c.dataset.t)};show(tab)};
 views.premium=async()=>{app.innerHTML=`<div class="section"><h1 style="text-align:center">Allez plus loin avec Cîmes.</h1><p style="text-align:center;color:var(--fog)">Page Premium conservée visuellement. Aucun paiement dans cette phase : toutes les fonctionnalités sont accessibles.</p></div>`};
+
+const PREVENTION=[
+ {sport:'Randonnée & Trek',icon:'🥾',tips:[
+  'Consulte la météo et le bulletin de risques avant de partir, et adapte ton itinéraire en conséquence.',
+  'Préviens un proche de ton parcours précis et de ton heure de retour prévue.',
+  'Emporte eau, nourriture, carte/GPS et une trousse de secours, ainsi qu’une couche chaude même en été.',
+  'Reste sur les sentiers balisés : pour ta sécurité et pour préserver la flore locale.'
+ ]},
+ {sport:'Trail',icon:'🏃',tips:[
+  'Connais le profil du parcours (distance, dénivelé, ravitaillements) avant de t’élancer.',
+  'Hydrate-toi et alimente-toi régulièrement, avant même d’en ressentir le besoin.',
+  'Porte des vêtements visibles et une lampe frontale pour les sorties tôt le matin ou en soirée.',
+  'Adapte ton allure à la météo et à la technicité du terrain, surtout en descente.'
+ ]},
+ {sport:'Alpinisme',icon:'🗻',tips:[
+  'Vérifie les conditions nivo-météorologiques et le risque d’avalanche avant de t’engager.',
+  'Pars tôt pour éviter la chute de pierres et le ramollissement de la neige en journée.',
+  'Emporte un équipement technique complet et adapté (crampons, piolet, casque, corde).',
+  'Ne pars jamais seul et informe systématiquement un tiers de ton itinéraire et de tes horaires.'
+ ]},
+ {sport:'Escalade & Via ferrata',icon:'🧗',tips:[
+  'Contrôle systématiquement ton matériel (baudrier, longes, casque) avant chaque sortie.',
+  'Vérifie l’état des points d’ancrage, du câble et des relais avant de t’engager.',
+  'Encorde-toi correctement et fais vérifier tes nœuds par un tiers.',
+  'Ne dépasse pas ton niveau technique sans un encadrement qualifié.'
+ ]},
+ {sport:'Ski (alpin, nordique, rando)',icon:'⛷️',tips:[
+  'Consulte le Bulletin d’Estimation du Risque d’Avalanche (BRA) avant de sortir des pistes balisées.',
+  'Emporte DVA, pelle et sonde en hors-piste, et entraîne-toi régulièrement à leur utilisation.',
+  'Respecte le balisage des pistes, les zones fermées et les horaires d’ouverture.',
+  'Vérifie la météo, la visibilité et l’état de la neige avant de t’engager.'
+ ]},
+ {sport:'VTT',icon:'🚵',tips:[
+  'Porte systématiquement un casque et des protections adaptées au terrain.',
+  'Vérifie l’état de ton vélo (freins, pneus, transmission) avant chaque sortie.',
+  'Adapte ta vitesse en descente et anticipe les autres usagers du sentier.',
+  'Respecte la signalétique et les sentiers autorisés à la pratique du VTT.'
+ ]}
+];
+views.prevention=async()=>{
+ app.innerHTML=`<div class="section"><div class="sh"><h2>Prévention & sécurité</h2><p>Quelques recommandations par activité — la montagne ne pardonne pas l’improvisation</p></div>
+ ${PREVENTION.map(p=>`<div class="prev-card"><h3>${p.icon} ${esc(p.sport)}</h3><ul>${p.tips.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>`).join('')}
+ <div class="notice">En cas d’urgence en montagne : composez le <b>112</b> (numéro d’urgence européen) ou le <b>15</b> (SAMU). Donne ta position aussi précisément que possible (lieu-dit, altitude, points de repère).</div>
+ </div>`};
 
 views.enregistrer=async()=>{
  if(!navigator.geolocation){app.innerHTML='<div class="section"><div class="sh"><h2>Ma sortie</h2></div><div class="notice">GPS indisponible sur ce navigateur/appareil. Configuration requise (permission de localisation).</div></div>';return}
@@ -552,15 +620,20 @@ views.ascension=async id=>{
   show();$('#ovc').onclick=e=>{if(e.target.id==='pv0'){k=(k-1+a.photos.length)%a.photos.length;show()}if(e.target.id==='nx0'){k=(k+1)%a.photos.length;show()}}})};
 
 /* ============ Router ============ */
-const NAV=[['','Accueil'],['explorer','Explorer'],['communaute','Communauté'],['carte','Carte'],['profil','Profil']];
+const NAV=[['','Accueil'],['explorer','Explorer'],['communaute','Communauté'],['carte','Carte'],['prevention','Prévention'],['profil','Profil']];
 async function route(){
  if(mapInst){mapInst.remove();mapInst=null}closeOv();
  if(activeWatch){navigator.geolocation.clearWatch(activeWatch);activeWatch=null;toast('Enregistrement GPS interrompu (page quittée).')}
  const parts=(location.hash.replace(/^#\/?/,'')||'').split('/');const v=parts[0]||'accueil';
  $('#links').innerHTML=NAV.map(([h,l])=>`<a href="#/${h}" class="${(parts[0]||'')===h?'on':''}">${l}</a>`).join('');
+ $('#ddlinks').innerHTML=NAV.map(([h,l])=>`<a href="#/${h}" class="${(parts[0]||'')===h?'on':''}">${l}</a>`).join('');
  document.querySelectorAll('.bn a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')===`#/${parts[0]||''}`));
+ $('#ddmenu').classList.remove('on');$('#menuBtn').setAttribute('aria-expanded','false');
  try{L_all=await load();await (views[v]||views.accueil)(parts[1]);window.scrollTo(0,0)}
  catch(e){app.innerHTML=`<div class="section"><div class="err">Erreur : ${esc(e.message)}. IndexedDB est peut-être désactivé (navigation privée).</div></div>`}}
+$('#menuBtn').onclick=()=>{const on=$('#ddmenu').classList.toggle('on');$('#menuBtn').setAttribute('aria-expanded',String(on))};
+document.addEventListener('click',e=>{if($('#ddmenu').classList.contains('on')&&!$('#ddmenu').contains(e.target)&&e.target.id!=='menuBtn'){$('#ddmenu').classList.remove('on');$('#menuBtn').setAttribute('aria-expanded','false')}});
+bindRouteSearch('#dq','#dl');
 addEventListener('hashchange',route);route();
 </script>
 </body>
